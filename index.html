@@ -218,7 +218,20 @@ tr.best td:first-child::before{content:'★ ';color:var(--amber)}
 details.cl summary{cursor:pointer;color:var(--mut);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-top:16px;padding:4px 0}
 details.cl[open] summary{margin-bottom:8px}
 @media (max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}.acc .eq{font-size:22px}}
-  
+/* account menu */
+.accmenu{position:relative}
+.am-btn{display:flex;align-items:center;gap:8px;max-width:190px;font:inherit;font-size:13px;font-weight:700;color:var(--txt);background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:0 12px;height:34px;cursor:pointer;transition:border-color .15s}
+.am-btn:hover,.am-btn.open{border-color:var(--acc)}
+.am-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.am-btn svg{width:12px;height:12px;flex:0 0 12px;transition:transform .2s}
+.am-btn.open svg{transform:rotate(180deg)}
+.am-pop{position:absolute;right:0;top:calc(100% + 8px);width:min(360px,92vw);background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 44px rgba(0,0,0,.55);padding:6px;max-height:70vh;overflow:auto;animation:fadeIn .15s ease}
+.am-row{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:none;border:0;border-radius:10px;padding:10px 12px;cursor:pointer;transition:background .12s}
+.am-row:hover{background:var(--card2)}
+.am-row.on{background:rgba(56,189,248,.12);box-shadow:inset 3px 0 0 var(--acc)}
+.am-row .l1{display:flex;justify-content:space-between;gap:10px;font-weight:700}
+.am-row .l2{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--mut);margin-top:2px}
+.am-sep{height:1px;background:var(--line);margin:4px 8px}
 </style>
 </head>
 <body>
@@ -242,14 +255,20 @@ details.cl[open] summary{margin-bottom:8px}
   <header class="topbar">
     <button class="hamburger" id="btnMenu" aria-label="Menu"><span></span></button>
     <div class="live"><i class="dot"></i><span id="updated">Loading…</span></div>
-    <button class="icon" id="btnRefresh" title="Refresh">⟳</button>
+    <div style="display:flex;gap:8px;align-items:center">
+  <div class="accmenu" id="accMenu">
+    <button class="am-btn" id="amBtn" aria-haspopup="true"><span id="amLabel">Accounts</span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l4 4 4-4"/></svg></button>
+    <div class="am-pop" id="amPop" hidden></div>
+  </div>
+  <button class="icon" id="btnRefresh" title="Refresh">⟳</button>
+</div>
   </header>
 
   <main class="app">
     <div class="banner" id="banner" hidden></div>
 
     <div class="filters" id="filters">
-      <select id="accSel"></select>
+      <select id="accSel" hidden></select>
       <div class="chips" id="periodChips">
         <button data-p="7">7D</button><button data-p="30">30D</button><button data-p="90">90D</button><button data-p="0" class="on">All</button>
       </div>
@@ -522,24 +541,6 @@ async function call(fn) {
     return j.data;
   } finally { freeSlot(); }
 }
-async function call(fn) {
-  var args = Array.prototype.slice.call(arguments, 1);
-  var token = await getToken();
-  var res = await fetch(API_URL, {
-    method: 'POST',
-    body: JSON.stringify({ fn: fn, args: args, token: token })   // no Content-Type header on purpose
-  });
-  var j = await res.json();
-  if (!j.ok) {
-    if (j.error === 'unauthorized') {
-      if (localStorage.getItem('mt_token') === token) localStorage.removeItem('mt_token');
-      tokenPromise = null;
-    }
-    throw new Error(j.error);
-  }
-  localStorage.setItem('mt_token', token);
-  return j.data;
-}
 
 /* ---------- toasts ---------- */
 var TOAST_META = {
@@ -703,8 +704,7 @@ function renderHome() {
     drawEquity([], null); drawDaily([]);
     return;
   }
-$('#statusBox').innerHTML = S.acc === 'ALL' ? '' : acctCard(S.acc);
-drawOverview();
+$('#statusBox').innerHTML = '';drawOverview();
   var list = tradesFor(), st = calcStats(list);
   $('#kpiBox').innerHTML =
     kpi('Net P&L', smoney(st.net), st.n + ' trades', cls(st.net)) +
@@ -1114,6 +1114,37 @@ async function archiveTask(id) {
   try { await call('archiveTask', id); S.tasks = await call('getTasks'); renderTasks(); toast('Task removed'); }
   catch (e) { toast(e.message, true); }
 }
+/* ---------- ACCOUNT MENU ---------- */
+function drawAccMenu() {
+  var lab = $('#amLabel'), pop = $('#amPop');
+  if (!lab || !pop) return;
+  if (!S.accounts.length) { lab.textContent = 'No accounts'; pop.innerHTML = '<div class="hint" style="padding:10px">Add an account under More → Setup.</div>'; return; }
+  var os = S.accounts.map(acctOverview);
+  var gr = function (v) { return '<span class="' + cls(v) + '" style="font-weight:700">' + (v == null ? '—' : (v > 0 ? '+' : '') + fx(v * 100) + '%') + '</span>'; };
+  var row = function (id, name, bal, nO, nP, growth) {
+    return '<button class="am-row' + (S.acc === id ? ' on' : '') + '" data-acc="' + esc(id) + '"><div class="l1"><span>' + esc(name) + '</span>' + gr(growth) + '</div>' +
+      '<div class="l2"><span>Balance ' + money(bal) + '</span><span>' + nO + ' open' + (nP ? ' · ' + nP + ' pending' : '') + '</span></div></button>';
+  };
+  var T = function (f) { return sum(os.map(f)); };
+  var start = T(function (o) { return o.start; });
+  var gAll = start ? (T(function (o) { return o.net; }) + T(function (o) { return o.fl; })) / start : null;
+  pop.innerHTML = row('ALL', 'All accounts', T(function (o) { return o.balance; }), T(function (o) { return o.open.length; }), T(function (o) { return o.pend.length; }), gAll) +
+    '<div class="am-sep"></div>' +
+    os.map(function (o) { return row(o.a.account_id, o.a.name || o.a.account_id, o.balance, o.open.length, o.pend.length, o.growth); }).join('');
+  lab.textContent = S.acc === 'ALL' ? 'All accounts' : ((acct(S.acc) || {}).name || S.acc);
+}
+function closeAccMenu() { $('#amPop').hidden = true; $('#amBtn').classList.remove('open'); }
+function bindAccMenu() {
+  $('#amBtn').addEventListener('click', function (e) {
+    e.stopPropagation();
+    var pop = $('#amPop'); pop.hidden = !pop.hidden;
+    $('#amBtn').classList.toggle('open', !pop.hidden);
+  });
+  document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-acc]') || !e.target.closest('#accMenu')) closeAccMenu();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAccMenu(); });
+}
 /* ---------- HOME OVERVIEW ---------- */
 function liveHome() { if (Date.now() - (PLAN.liveAt || 0) > 30000) loadPlans(true); }
 
@@ -1302,7 +1333,7 @@ async function loadPlans(runCheck) {
     var res = await Promise.allSettled([call('getPlans'), call('getPrices')]);
     if (res[0].status === 'fulfilled') PLAN.plans = res[0].value;
     if (res[1].status === 'fulfilled') { PLAN.prices = res[1].value; PLAN.priceErr = ''; } else PLAN.priceErr = res[1].reason.message;
-    drawTicker(); drawPlans(); planCalc();
+    drawTicker(); drawPlans(); planCalc(); drawAccMenu();
     if (S.tab === 'home') drawOverview();
   } finally { PLAN.busy = false; }
 }
@@ -1449,8 +1480,7 @@ function bindPlan() {
     if ((t = e.target.closest('[data-pair]'))) return openPair(t.dataset.pair);
     if ((t = e.target.closest('[data-planpair]'))) { closeModal(); pSetSym(t.dataset.planpair); window.scrollTo(0, 0); }
   });
-  setInterval(function () { if (S.tab === 'plan' || S.tab === 'home' && document.visibilityState === 'visible' && S.loaded) loadPlans(true); }, 45000);
-}
+setInterval(function () { if ((S.tab === 'plan' || S.tab === 'home') && document.visibilityState === 'visible' && S.loaded) loadPlans(true); }, 45000);}
 
 /* ---------- loading & routing ---------- */
 function showBanner(msg) { var b = $('#banner'); b.hidden = !msg; b.textContent = msg ? 'Some data failed to load: ' + msg : ''; }
@@ -1490,6 +1520,7 @@ async function refreshData(withInit) {
 }
 
 function renderTab(name) {
+  drawAccMenu();
   if (name === 'home') { renderHome(); liveHome(); }
   else if (name === 'trades') renderTrades();
   else if (name === 'stats') renderStats();
@@ -1559,7 +1590,7 @@ function bind() {
 }
 
 function init() {
-  setChartDefaults(); bind(); bindPlan(); resetLog(); showTab('home'); loadAll();
+  setChartDefaults(); bind(); bindPlan(); bindAccMenu(); resetLog(); showTab('home'); loadAll();
 }
 init();
 window.__app = {S: S, showTab: showTab, calcStats: calcStats, openTrade: openTrade, riskFor: riskFor, pnlFor: pnlFor, calcUpdate: calcUpdate};
