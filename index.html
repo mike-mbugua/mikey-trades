@@ -373,7 +373,17 @@ function duration(a, b) {
 }
 
 var API_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
-
+var tokenPromise = null;
+function getToken() {
+  var saved = localStorage.getItem('mt_token');
+  if (saved) return Promise.resolve(saved);
+  if (!tokenPromise) {
+    tokenPromise = Promise.resolve().then(function () {
+      return (prompt('Access password:') || '').trim();
+    });
+  }
+  return tokenPromise;
+}
 async function call(fn) {
   var args = Array.prototype.slice.call(arguments, 1);
   var token = localStorage.getItem('mt_token') || prompt('Access password:') || '';
