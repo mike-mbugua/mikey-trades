@@ -206,6 +206,19 @@ tr.best td:first-child::before{content:'★ ';color:var(--amber)}
 .imp.High{background:var(--red)}.imp.Medium{background:var(--amber)}.imp.Low{background:#facc15}.imp.Holiday{background:var(--mut)}
 @media (max-width:900px){.pf{grid-template-columns:1fr 1fr}.ticker{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:560px){.ticker{grid-template-columns:repeat(2,1fr)}.sum{padding:12px}.sum .amt{font-size:19px}.sum .row{gap:8px}.pf{gap:10px}} 
+/* home overview */
+.acc{padding:16px}
+.acc .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.acc .eq{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.stat{background:var(--card2);border-radius:10px;padding:8px 10px}
+.stat .k{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);font-weight:700}
+.stat .v{font-size:14px;font-weight:700;margin-top:2px}
+.sec{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);font-weight:700;margin:16px 0 8px}
+details.cl summary{cursor:pointer;color:var(--mut);font-weight:700;font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-top:16px;padding:4px 0}
+details.cl[open] summary{margin-bottom:8px}
+@media (max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}.acc .eq{font-size:22px}}
+  
 </style>
 </head>
 <body>
@@ -245,6 +258,7 @@ tr.best td:first-child::before{content:'★ ';color:var(--amber)}
     <!-- HOME -->
     <section class="tab" id="tab-home">
       <div id="statusBox"></div>
+      <div id="overviewBox"></div>
       <div class="kpis" id="kpiBox"></div>
       <div class="card"><h3>Equity</h3><div class="chartbox"><canvas id="cEquity"></canvas></div></div>
       <div class="grid2">
@@ -689,8 +703,8 @@ function renderHome() {
     drawEquity([], null); drawDaily([]);
     return;
   }
-  $('#statusBox').innerHTML = S.acc === 'ALL' ? S.accounts.map(miniCard).join('') : acctCard(S.acc);
-
+$('#statusBox').innerHTML = S.acc === 'ALL' ? '' : acctCard(S.acc);
+drawOverview();
   var list = tradesFor(), st = calcStats(list);
   $('#kpiBox').innerHTML =
     kpi('Net P&L', smoney(st.net), st.n + ' trades', cls(st.net)) +
@@ -1100,6 +1114,92 @@ async function archiveTask(id) {
   try { await call('archiveTask', id); S.tasks = await call('getTasks'); renderTasks(); toast('Task removed'); }
   catch (e) { toast(e.message, true); }
 }
+/* ---------- HOME OVERVIEW ---------- */
+function liveHome() { if (Date.now() - (PLAN.liveAt || 0) > 30000) loadPlans(true); }
+
+function floatOf(p) {
+  var q = PLAN.prices && PLAN.prices.prices && PLAN.prices.prices[p.symbol];
+  if (!q || p.status !== 'open') return null;
+  var buy = p.direction === 'buy', px = buy ? q.bid : q.ask;
+  return (buy ? 1 : -1) * (px - p.entry_price) * p.lots * perLot(p.symbol, px);
+}
+function notionalOf(sym, lots, px) { return sym === 'USDJPY' ? lots * 100000 : lots * SPECS[sym].pp * px; }
+function topPair(syms) {
+  var c = {}, best = null;
+  syms.forEach(function (s) { c[s] = (c[s] || 0) + 1; if (!best || c[s] > c[best]) best = s; });
+  return best ? best + ' (' + c[best] + ')' : '—';
+}
+
+function acctOverview(a) {
+  var s = statusOf(a.account_id) || {}, start = Number(a.starting_balance) || 0;
+  var closed = S.trades.filter(function (t) { return t.account_id === a.account_id; });
+  var mine = PLAN.plans.filter(function (p) { return p.account_id === a.account_id; });
+  var open = mine.filter(function (p) { return p.status === 'open'; });
+  var pend = mine.filter(function (p) { return p.status === 'pending'; });
+  var fl = sum(open.map(function (p) { return floatOf(p) || 0; }));
+  var balance = s.current_balance != null ? s.current_balance : start;
+  var equity = balance + fl, lev = Number(a.leverage) > 0 ? Number(a.leverage) : 100;
+  var margin = sum(open.map(function (p) { return notionalOf(p.symbol, p.lots, p.entry_price) / lev; }));
+  var net = s.total_net_pnl || 0;
+  return {a: a, start: start, closed: closed, open: open, pend: pend, fl: fl, balance: balance, equity: equity, lev: lev,
+    margin: margin, free: equity - margin, level: margin > 0 ? equity / margin * 100 : null, net: net,
+    growth: start ? (net + fl) / start : null,
+    syms: closed.map(function (t) { return t.symbol; }).concat(open.map(function (p) { return p.symbol; }))};
+}
+
+function posRow(p) {
+  var q = curPx(p.symbol), fl = floatOf(p);
+  var prog = q == null ? null : (q - p.stop_price) / (p.target_price - p.stop_price);
+  var bar = prog == null ? '' : '<div class="bar" style="margin-top:8px"><div class="track"><div class="fill" style="width:' + Math.max(0, Math.min(100, prog * 100)) + '%;background:' + (prog >= 0.5 ? 'var(--green)' : 'var(--red)') + '"></div></div><div class="lbl" style="margin:4px 0 0"><span>SL ' + p.stop_price + '</span><span>TP ' + p.target_price + '</span></div></div>';
+  return '<div class="pcard"><div class="rowb"><div><b>' + esc(p.symbol) + '</b> <span class="badge ' + esc(p.direction) + '">' + esc(p.direction) + '</span><div class="mut" style="margin-top:2px">' + fx(p.lots) + ' lots · in at ' + p.entry_price + (q != null ? ' · now ' + q.toFixed(DEC[p.symbol]) : '') + '</div></div>' +
+    '<div style="text-align:right"><div class="' + cls(fl) + '" style="font-size:22px;font-weight:800">' + (fl == null ? '—' : smoney(fl)) + '</div><div class="mut">TP +' + money(p.exp_profit) + ' · SL -' + money(p.exp_loss) + '</div></div></div>' + bar + '</div>';
+}
+function pendRow(p) {
+  var q = curPx(p.symbol), I = INFO[p.symbol];
+  var away = q == null ? '' : ' · ' + fx(Math.abs(q - p.entry_price) / I.us, I.us < 1 ? 1 : 0) + ' ' + I.u + ' to entry';
+  return '<div class="list-row"><span><b>' + esc(p.symbol) + '</b> <span class="badge ' + esc(p.direction) + '">' + esc(p.direction) + '</span> <span class="mut">' + fx(p.lots) + ' lots @ ' + p.entry_price + away + '</span></span><span class="badge pending">pending</span></div>';
+}
+
+function accCard(o, focus) {
+  var a = o.a, n = o.closed.length + o.open.length;
+  var st = function (k, v, c) { return '<div class="stat"><div class="k">' + k + '</div><div class="v ' + (c || '') + '">' + v + '</div></div>'; };
+  var html = '<div class="card acc"><div class="top"><div><div class="mut">' + esc(a.name) + ' · ' + esc(a.account_type) + '</div><div class="eq">' + money(o.equity) + '</div><div class="mut">Balance ' + money(o.balance) + '</div></div>' +
+    '<div style="text-align:right"><div class="mut">Floating P/L</div><div class="' + cls(o.fl) + '" style="font-size:24px;font-weight:800">' + (o.open.length ? smoney(o.fl) : '$0.00') + '</div>' +
+    (focus ? '<button class="btn ghost sm" data-acc="' + esc(a.account_id) + '" style="margin-top:6px">Focus</button>' : '') + '</div></div><div class="stats">' +
+    st('Growth', o.growth == null ? '—' : (o.growth > 0 ? '+' : '') + fx(o.growth * 100) + '%', cls(o.growth)) +
+    st('Open · Pending', o.open.length + ' · ' + o.pend.length) + st('Closed', o.closed.length) + st('Total trades', n) +
+    st('Top pair', topPair(o.syms)) + st('Margin used', money(o.margin) + ' <span class="mut" style="font-weight:500">1:' + o.lev + '</span>') +
+    st('Free margin', money(o.free)) + st('Margin level', o.level == null ? '—' : fx(o.level, 0) + '%') + '</div>';
+  if (o.open.length) html += '<div class="sec">Open trades</div>' + o.open.map(posRow).join('');
+  if (o.pend.length) html += '<div class="sec">Pending</div>' + o.pend.map(pendRow).join('');
+  if (!o.open.length && !o.pend.length) html += '<div class="hint">No open or pending trades. Plan one in the Plan tab.</div>';
+  html += '<details class="cl"><summary>Closed trades (' + o.closed.length + ')</summary>' +
+    (o.closed.length ? o.closed.slice(0, 10).map(tradeCard).join('') + (o.closed.length > 10 ? '<div class="hint">Latest 10 shown. The Trades tab has all of them.</div>' : '') : '<div class="hint">None yet.</div>') + '</details></div>';
+  return html;
+}
+
+function drawOverview() {
+  var box = $('#overviewBox');
+  if (!box) return;
+  var accs = S.acc === 'ALL' ? S.accounts : [acct(S.acc)].filter(Boolean);
+  if (!accs.length) { box.innerHTML = ''; return; }
+  var os = accs.map(acctOverview), html = '';
+  if (S.acc === 'ALL') {
+    var T = function (f) { return sum(os.map(f)); };
+    var start = T(function (o) { return o.start; }), fl = T(function (o) { return o.fl; }), net = T(function (o) { return o.net; });
+    var nO = T(function (o) { return o.open.length; }), nP = T(function (o) { return o.pend.length; }), nC = T(function (o) { return o.closed.length; });
+    var g = start ? (net + fl) / start : null, syms = [];
+    os.forEach(function (o) { syms = syms.concat(o.syms); });
+    html += '<div class="kpis">' +
+      kpi('Total equity', money(T(function (o) { return o.equity; })), os.length + ' account' + (os.length > 1 ? 's' : '')) +
+      kpi('Floating P/L', nO ? smoney(fl) : '$0.00', nO + ' open', cls(fl)) +
+      kpi('Growth', g == null ? '—' : (g > 0 ? '+' : '') + fx(g * 100) + '%', 'realized + floating', cls(g)) +
+      kpi('Margin used', money(T(function (o) { return o.margin; })), 'estimate') +
+      kpi('Open trades', nO, nP + ' pending') + kpi('Closed trades', nC, '') +
+      kpi('Trades taken', nC + nO, 'closed + open') + kpi('Most traded', topPair(syms), 'all accounts') + '</div>';
+  }
+  box.innerHTML = html + os.map(function (o) { return accCard(o, S.acc === 'ALL' && os.length > 1); }).join('');
+}
 /* ---------- PLAN + NEWS ---------- */
 var PLAN = {plans: [], prices: null, priceErr: '', err: '', news: null, newsAt: 0, day: 'today', imp: 'All', cur: 'ALL', dir: 'buy', timeTouched: false, busy: false};
 var DEC = {XAUUSD: 2, EURUSD: 5, GBPUSD: 5, USDJPY: 3, DXY: 3};
@@ -1190,7 +1290,7 @@ async function savePlan() {
 
 async function loadPlans(runCheck) {
   if (PLAN.busy) return;
-  PLAN.busy = true;
+  PLAN.busy = true; PLAN.liveAt = Date.now();
   try {
     if (runCheck) {
       try {
@@ -1203,6 +1303,7 @@ async function loadPlans(runCheck) {
     if (res[0].status === 'fulfilled') PLAN.plans = res[0].value;
     if (res[1].status === 'fulfilled') { PLAN.prices = res[1].value; PLAN.priceErr = ''; } else PLAN.priceErr = res[1].reason.message;
     drawTicker(); drawPlans(); planCalc();
+    if (S.tab === 'home') drawOverview();
   } finally { PLAN.busy = false; }
 }
 
@@ -1348,7 +1449,7 @@ function bindPlan() {
     if ((t = e.target.closest('[data-pair]'))) return openPair(t.dataset.pair);
     if ((t = e.target.closest('[data-planpair]'))) { closeModal(); pSetSym(t.dataset.planpair); window.scrollTo(0, 0); }
   });
-  setInterval(function () { if (S.tab === 'plan' && document.visibilityState === 'visible' && S.loaded) loadPlans(true); }, 45000);
+  setInterval(function () { if (S.tab === 'plan' || S.tab === 'home' && document.visibilityState === 'visible' && S.loaded) loadPlans(true); }, 45000);
 }
 
 /* ---------- loading & routing ---------- */
@@ -1389,7 +1490,7 @@ async function refreshData(withInit) {
 }
 
 function renderTab(name) {
-  if (name === 'home') renderHome();
+  if (name === 'home') { renderHome(); liveHome(); }
   else if (name === 'trades') renderTrades();
   else if (name === 'stats') renderStats();
   else if (name === 'plan') renderPlan();
