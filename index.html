@@ -429,6 +429,46 @@ function getToken() {
   }
   return tokenPromise;
 }
+
+// max 3 requests in flight at once, so Apps Script isn't flooded
+var inflight = 0, waiters = [];
+function takeSlot() {
+  return new Promise(function (res) { if (inflight < 3) { inflight++; res(); } else waiters.push(res); });
+}
+function freeSlot() { var next = waiters.shift(); if (next) next(); else inflight--; }
+
+async function call(fn) {
+  var args = Array.prototype.slice.call(arguments, 1);
+  var token = await getToken();
+  var tries = /^get|^checkPending$/.test(fn) ? 3 : 1; // only retry reads, never writes (avoids duplicate trades)
+  await takeSlot();
+  try {
+    var j = null, lastErr = null;
+    for (var i = 0; i < tries; i++) {
+      try {
+        var res = await fetch(API_URL, {
+          method: 'POST',
+          body: JSON.stringify({ fn: fn, args: args, token: token })   // no Content-Type header on purpose
+        });
+        j = await res.json();
+        break;
+      } catch (e) {
+        lastErr = e;
+        await new Promise(function (r) { setTimeout(r, 800 * (i + 1)); });
+      }
+    }
+    if (!j) throw new Error('Network error, please try again (' + (lastErr && lastErr.message) + ')');
+    if (!j.ok) {
+      if (j.error === 'unauthorized') {
+        if (localStorage.getItem('mt_token') === token) localStorage.removeItem('mt_token');
+        tokenPromise = null;
+      }
+      throw new Error(j.error);
+    }
+    localStorage.setItem('mt_token', token);
+    return j.data;
+  } finally { freeSlot(); }
+}
 async function call(fn) {
   var args = Array.prototype.slice.call(arguments, 1);
   var token = await getToken();
