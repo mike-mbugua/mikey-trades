@@ -168,16 +168,44 @@ tr.best td:first-child::before{content:'★ ';color:var(--amber)}
   .modal{align-items:center}
   .sheet{border-radius:18px;animation:sheetInDesktop .22s ease}
 }
-  .ticker{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
-.tick{background:var(--card2);border-radius:10px;padding:8px 10px}
-.tick .k{font-size:11px;color:var(--mut)}.tick .v{font-weight:800;font-size:16px}
+ /* plan + news */
+.ticker{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tick{font:inherit;color:inherit;text-align:left;cursor:pointer;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;transition:transform .15s,border-color .15s}
+.tick:hover{transform:translateY(-2px);border-color:var(--acc)}
+.tick .k{font-size:11px;color:var(--mut);font-weight:700;letter-spacing:.05em}.tick .v{font-size:17px;font-weight:800;margin-top:2px}
+.sum{position:sticky;top:calc(58px + env(safe-area-inset-top));z-index:10;background:linear-gradient(180deg,#151d27,#111820);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.sum .row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.sum .lb{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);font-weight:700}
+.sum .amt{font-size:26px;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.rr{display:flex;height:6px;border-radius:99px;overflow:hidden;margin-top:12px;background:var(--card2)}
+.rr i{display:block;height:100%;transition:width .3s}
+.chipwarn{display:inline-block;font-size:11px;font-weight:600;padding:4px 9px;border-radius:99px;margin:8px 6px 0 0;background:rgba(245,158,11,.14);color:var(--amber)}
+.chipwarn.bad{background:rgba(239,68,68,.14);color:var(--red)}
+.pf{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.pf .span2{grid-column:span 2}.pf .span4{grid-column:1/-1}
+.fld{display:block;font-size:12px}
+.fld>span{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);font-weight:700}
+.fld input,.fld select,.fld textarea{margin-top:6px;font-variant-numeric:tabular-nums}
+.fld .sub{font-size:11px;color:var(--mut);margin-top:5px;min-height:14px}
+.pairs{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.pairs button{flex:1;min-width:84px;font:inherit;font-weight:800;padding:11px;border-radius:12px;border:1px solid var(--line);background:var(--card2);color:var(--mut);cursor:pointer;transition:all .15s}
+.pairs button.on{background:linear-gradient(135deg,var(--acc),#6366f1);color:#04121a;border-color:transparent;box-shadow:0 6px 16px rgba(56,189,248,.25)}
+.qk{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.qk button{font:inherit;font-size:12px;font-weight:700;padding:5px 10px;border-radius:99px;border:1px solid var(--line);background:var(--card2);color:var(--mut);cursor:pointer}
+.qk button:hover{color:var(--txt);border-color:var(--acc)}
 .badge.pending{background:rgba(245,158,11,.15);color:var(--amber)}
 .badge.open{background:rgba(59,130,246,.15);color:var(--blue)}
 .pcard{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
-.nrow{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
-.nrow.past{opacity:.45}
-.imp{width:9px;height:9px;border-radius:50%;margin-top:6px;flex:0 0 9px}
+.rng{position:relative;height:8px;border-radius:99px;background:linear-gradient(90deg,var(--red),var(--amber),var(--green));margin:14px 0 6px}
+.rng b{position:absolute;top:-4px;width:4px;height:16px;background:#fff;border-radius:2px;transform:translateX(-2px)}
+.leg{display:grid;gap:6px;font-size:12px;color:var(--mut)}.leg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:8px}
+.ntbl td.ev{text-align:left;white-space:normal;min-width:190px}
+.ntbl tr.past{opacity:.45}.ntbl tr.dayrow td{text-align:left;color:var(--acc);font-weight:700;background:var(--card2)}
+.pp{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:5px;background:var(--card2);color:var(--mut);margin:3px 4px 0 0}
+.imp{display:inline-block;width:10px;height:10px;border-radius:50%}
 .imp.High{background:var(--red)}.imp.Medium{background:var(--amber)}.imp.Low{background:#facc15}.imp.Holiday{background:var(--mut)}
+@media (max-width:900px){.pf{grid-template-columns:1fr 1fr}.ticker{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:560px){.ticker{grid-template-columns:repeat(2,1fr)}.sum{padding:12px}.sum .amt{font-size:19px}.sum .row{gap:8px}.pf{gap:10px}} 
 </style>
 </head>
 <body>
@@ -282,23 +310,32 @@ tr.best td:first-child::before{content:'★ ';color:var(--amber)}
     </section>
     <!-- PLAN -->
 <section class="tab" id="tab-plan" hidden>
-  <div class="card"><div class="rowb"><h3>Live prices</h3><span class="mut" id="tickMeta"></span></div><div class="ticker" id="ticker"><span class="mut">Loading…</span></div></div>
-  <div class="card">
-    <h3>Plan a trade</h3>
-    <div class="form">
-      <label>Account<select id="p_account"></select></label>
-      <label>Strategy<select id="p_strategy"></select></label>
-      <label>Pair<select id="p_symbol"><option>XAUUSD</option><option>GBPUSD</option><option>USDJPY</option><option>EURUSD</option><option>DXY</option></select></label>
-      <div class="lab">Direction<div class="seg" id="p_dir"><button type="button" data-v="buy" class="on">Buy</button><button type="button" data-v="sell">Sell</button></div></div>
-      <label>Entry price<input id="p_entry" type="number" step="any" inputmode="decimal"></label>
-      <label>Stop loss price<input id="p_sl" type="number" step="any" inputmode="decimal"></label>
-      <label>Take profit price<input id="p_tp" type="number" step="any" inputmode="decimal"></label>
-      <label>Lot size<input id="p_lots" type="number" step="0.01" inputmode="decimal"></label>
-      <label class="full">Date and time<input id="p_time" type="datetime-local"></label>
-      <label class="full">Setup tag<input id="p_setup" list="setupList" placeholder="e.g. OB retest" autocomplete="off"></label>
-      <label class="full">Notes<textarea id="p_notes" rows="2" placeholder="Why this trade"></textarea></label>
+  <div class="card"><div class="rowb"><h3>Markets</h3><span class="mut" id="tickMeta"></span></div><div class="ticker" id="ticker"></div></div>
+  <div class="sum">
+    <div class="row">
+      <div><div class="lb">Expected profit</div><div class="amt pos" id="sProfit">—</div></div>
+      <div><div class="lb">Expected loss</div><div class="amt neg" id="sLoss">—</div></div>
+      <div><div class="lb">Risk : Reward</div><div class="amt" id="sRR">—</div></div>
     </div>
-    <div class="calc-out" id="pCalc"></div>
+    <div class="rr"><i id="rrL" style="background:var(--red);width:50%"></i><i id="rrP" style="background:var(--green);width:50%"></i></div>
+    <div id="sWarn"></div>
+  </div>
+  <div class="card">
+    <h3>Trade setup</h3>
+    <input type="hidden" id="p_symbol" value="XAUUSD">
+    <div class="pf">
+      <label class="fld"><span>Account</span><select id="p_account"></select></label>
+      <label class="fld"><span>Strategy</span><select id="p_strategy"></select></label>
+      <label class="fld span2"><span>Setup tag</span><input id="p_setup" list="setupList" placeholder="e.g. OB retest" autocomplete="off"></label>
+      <div class="fld span4"><span>Pair</span><div class="pairs" id="p_pairs"><button type="button" data-sym="XAUUSD" class="on">XAUUSD</button><button type="button" data-sym="GBPUSD">GBPUSD</button><button type="button" data-sym="USDJPY">USDJPY</button><button type="button" data-sym="EURUSD">EURUSD</button><button type="button" data-sym="DXY">DXY</button></div></div>
+      <div class="fld span2"><span>Direction</span><div class="seg" id="p_dir"><button type="button" data-v="buy" class="on">Buy</button><button type="button" data-v="sell">Sell</button></div></div>
+      <label class="fld span2"><span>Date &amp; time</span><input id="p_time" type="datetime-local"></label>
+      <div class="fld"><span>Entry</span><input id="p_entry" type="number" step="any" inputmode="decimal"><div class="sub" id="s_entry"></div><div class="qk"><button type="button" id="qLive">Use live price</button></div></div>
+      <div class="fld"><span>Stop loss</span><input id="p_sl" type="number" step="any" inputmode="decimal"><div class="sub" id="s_sl"></div></div>
+      <div class="fld"><span>Take profit</span><input id="p_tp" type="number" step="any" inputmode="decimal"><div class="sub" id="s_tp"></div><div class="qk" id="p_rr"><button type="button" data-r="1">1R</button><button type="button" data-r="2">2R</button><button type="button" data-r="3">3R</button></div></div>
+      <div class="fld"><span>Lot size</span><input id="p_lots" type="number" step="0.01" inputmode="decimal"><div class="qk" id="p_lotq"><button type="button" data-l="0.01">0.01</button><button type="button" data-l="0.05">0.05</button><button type="button" data-l="0.1">0.10</button><button type="button" data-l="0.5">0.50</button><button type="button" data-l="1">1.00</button></div></div>
+      <label class="fld span4"><span>Notes</span><textarea id="p_notes" rows="2" placeholder="Why this trade"></textarea></label>
+    </div>
     <button class="btn full" id="btnPlan" disabled>Save as pending</button>
   </div>
   <div class="card"><div class="rowb"><h3>Pending and open</h3><button class="btn ghost sm" id="btnCheck">Check now</button></div><div id="planList"></div></div>
@@ -308,10 +345,12 @@ tr.best td:first-child::before{content:'★ ';color:var(--amber)}
 <section class="tab" id="tab-news" hidden>
   <div class="card">
     <div class="rowb"><h3>Economic calendar</h3><span class="mut" id="newsMeta"></span></div>
-    <div class="chips" id="newsDay"><button data-d="today" class="on">Today</button><button data-d="week">This week</button></div>
-    <div class="chips" id="newsImp" style="margin-top:8px"><button data-i="High" class="on">High</button><button data-i="Medium">Medium+</button><button data-i="All">All</button></div>
-    <div id="newsList" style="margin-top:8px"></div>
-    <div class="hint">USD, EUR, GBP and JPY events, in your device's time zone. Source: Forex Factory's free weekly feed (forecast and previous only).</div>
+    <div id="newsNext" class="hint" style="margin:0 0 10px"></div>
+    <div class="chips" id="newsDay"><button data-d="today" class="on">Today</button><button data-d="tomorrow">Tomorrow</button><button data-d="week">This week</button></div>
+    <div class="chips" id="newsImp" style="margin-top:8px"><button data-i="High">High</button><button data-i="Medium">Medium+</button><button data-i="All" class="on">All</button></div>
+    <div class="chips" id="newsCur" style="margin-top:8px"><button data-c="ALL" class="on">All</button><button data-c="MINE">My pairs</button><button data-c="USD">USD</button><button data-c="EUR">EUR</button><button data-c="GBP">GBP</button><button data-c="JPY">JPY</button><button data-c="CAD">CAD</button><button data-c="AUD">AUD</button><button data-c="NZD">NZD</button><button data-c="CHF">CHF</button><button data-c="CNY">CNY</button></div>
+    <div class="tblwrap" style="margin-top:10px" id="newsList"></div>
+    <div class="hint">Times are in your device's time zone. Pair tags show which of your instruments each currency moves. Source: Forex Factory's free weekly feed.</div>
   </div>
 </section>
     <!-- MORE -->
@@ -1062,19 +1101,31 @@ async function archiveTask(id) {
   catch (e) { toast(e.message, true); }
 }
 /* ---------- PLAN + NEWS ---------- */
-var PLAN = {plans: [], prices: null, priceErr: '', err: '', news: null, newsAt: 0, day: 'today', imp: 'High', dir: 'buy', timeTouched: false, busy: false};
+var PLAN = {plans: [], prices: null, priceErr: '', err: '', news: null, newsAt: 0, day: 'today', imp: 'All', cur: 'ALL', dir: 'buy', timeTouched: false, busy: false};
 var DEC = {XAUUSD: 2, EURUSD: 5, GBPUSD: 5, USDJPY: 3, DXY: 3};
-var SYM_CUR = {XAUUSD: ['USD'], EURUSD: ['EUR', 'USD'], GBPUSD: ['GBP', 'USD'], USDJPY: ['USD', 'JPY'], DXY: ['USD', 'EUR', 'GBP', 'JPY']};
+var SYM_CUR = {XAUUSD: ['USD'], EURUSD: ['EUR', 'USD'], GBPUSD: ['GBP', 'USD'], USDJPY: ['USD', 'JPY'], DXY: ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'CHF']};
+var MINE = ['USD', 'EUR', 'GBP', 'JPY'];
+var INFO = {
+  XAUUSD: {name: 'Gold vs US Dollar', nick: 'Gold', us: 1, u: 'pts', unit: '$1.00 move', size: '100 oz', sess: 'London → New York', drv: 'Real yields, USD strength, risk sentiment, geopolitics'},
+  GBPUSD: {name: 'British Pound vs US Dollar', nick: 'Cable', us: 0.0001, u: 'pips', unit: 'pip', size: '100,000 GBP', sess: 'London, NY overlap', drv: 'BoE vs Fed policy, UK CPI and jobs data'},
+  USDJPY: {name: 'US Dollar vs Japanese Yen', nick: 'USDJPY', us: 0.01, u: 'pips', unit: 'pip', size: '100,000 USD', sess: 'Tokyo and New York', drv: 'US yields, BoJ policy, risk sentiment, intervention risk'},
+  EURUSD: {name: 'Euro vs US Dollar', nick: 'Fiber', us: 0.0001, u: 'pips', unit: 'pip', size: '100,000 EUR', sess: 'London, NY overlap', drv: 'ECB vs Fed policy, Eurozone and US data'},
+  DXY: {name: 'US Dollar Index (synthetic)', nick: 'Dollar Index', us: 1, u: 'pts', unit: '1.00 point', size: 'Broker CFD', sess: 'London → New York', drv: 'Fed, US yields. EUR is about 58% of the basket'}
+};
 var planReady = null;
 
 function hm(iso) { return new Date(iso).toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'}); }
-function until(ms) { var m = Math.round(ms / 60000); return m < 60 ? m + 'm' : Math.floor(m / 60) + 'h ' + (m % 60) + 'm'; }
+function until(ms) { var m = Math.round(ms / 60000); return m < 60 ? m + 'm' : m < 1440 ? Math.floor(m / 60) + 'h ' + (m % 60) + 'm' : Math.floor(m / 1440) + 'd'; }
+function pairsFor(c) { return Object.keys(SYM_CUR).filter(function (s) { return SYM_CUR[s].indexOf(c) >= 0; }); }
 
-function pSetDir(v) {
-  PLAN.dir = v;
-  $$('#p_dir button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === v); });
+function pSetDir(v) { PLAN.dir = v; $$('#p_dir button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === v); }); planCalc(); }
+function pSetSym(s) {
+  $('#p_symbol').value = s;
+  $$('#p_pairs button').forEach(function (b) { b.classList.toggle('on', b.dataset.sym === s); });
+  ['p_entry', 'p_sl', 'p_tp'].forEach(function (id) { $('#' + id).value = ''; });
   planCalc();
 }
+function curPx(sym) { var q = PLAN.prices && PLAN.prices.prices[sym]; return q ? q.mid : null; }
 
 function newsNear(sym) {
   if (!PLAN.news) return '';
@@ -1083,36 +1134,37 @@ function newsNear(sym) {
     var d = new Date(e.time).getTime() - t;
     return e.impact === 'High' && cur.indexOf(e.currency) >= 0 && d > -15 * 60000 && d < 60 * 60000;
   })[0];
-  return hit ? 'High-impact ' + hit.currency + ' news: ' + hit.title + ' at ' + hm(hit.time) : '';
+  return hit ? 'High-impact ' + hit.currency + ': ' + hit.title + ' at ' + hm(hit.time) : '';
 }
 
 function planCalc() {
-  var sym = $('#p_symbol').value, buy = PLAN.dir === 'buy';
+  var sym = $('#p_symbol').value, buy = PLAN.dir === 'buy', I = INFO[sym], d = DEC[sym];
   var en = num($('#p_entry').value), sl = num($('#p_sl').value), tp = num($('#p_tp').value), lots = num($('#p_lots').value);
-  var out = $('#pCalc'), btn = $('#btnPlan');
-  planReady = null; btn.disabled = true;
-  if (!en || !sl || !tp || !(lots > 0)) { out.innerHTML = '<span class="mut">Enter entry, stop loss, take profit and lots.</span>'; return; }
-  if (buy ? !(sl < en && tp > en) : !(sl > en && tp < en)) {
-    out.innerHTML = '<span class="neg">For a ' + (buy ? 'buy' : 'sell') + ', stop loss must be ' + (buy ? 'below' : 'above') + ' entry and take profit ' + (buy ? 'above' : 'below') + ' it.</span>';
-    return;
-  }
-  var profit = +(Math.abs(tp - en) * lots * perLot(sym, tp)).toFixed(2);
-  var loss = +(Math.abs(en - sl) * lots * perLot(sym, sl)).toFixed(2);
-  var html = '<div class="rowb"><div><div class="mut">Expected profit (TP)</div><div class="big pos">+' + money(profit) + '</div></div>' +
-    '<div style="text-align:right"><div class="mut">Expected loss (SL)</div><div class="big neg">-' + money(loss) + '</div></div></div>' +
-    '<div class="mut" style="margin-top:6px">R:R ' + fx(profit / loss) + ' : 1';
-  var s = statusOf($('#p_account').value);
-  if (s && s.current_balance) html += ' · risks ' + fx(loss / s.current_balance * 100) + '% of balance';
-  html += '</div>';
-  if (s && s.daily_loss_limit != null) {
-    var room = s.daily_loss_limit - s.daily_loss_used;
-    if (loss > room) html += '<div class="neg" style="margin-top:6px">⚠ Loss exceeds daily loss room left (' + money(room) + ')</div>';
-  }
-  var warn = newsNear(sym);
-  if (warn) html += '<div class="amb" style="margin-top:6px">⚠ ' + esc(warn) + '</div>';
-  out.innerHTML = html;
-  planReady = {profit: profit, loss: loss};
-  btn.disabled = false;
+  var cur = curPx(sym), profit = null, loss = null, chips = '';
+  var away = function (a, b) { return fx(Math.abs(a - b) / I.us, I.us < 1 ? 1 : 2) + ' ' + I.u; };
+  planReady = null; $('#btnPlan').disabled = true;
+  $('#s_entry').textContent = en && cur ? (buy ? (en < cur ? 'Buy limit' : 'Buy stop') : (en > cur ? 'Sell limit' : 'Sell stop')) + ' · ' + away(en, cur) + ' from live' : (cur ? 'Live ' + cur.toFixed(d) : '');
+  $('#s_sl').textContent = en && sl ? away(en, sl) + ' risk' : '';
+  $('#s_tp').textContent = en && tp ? away(en, tp) + ' reward' : '';
+  if (en && sl && tp && lots > 0) {
+    if (buy ? !(sl < en && tp > en) : !(sl > en && tp < en)) {
+      chips = '<span class="chipwarn bad">' + (buy ? 'Buy: stop loss below entry, take profit above' : 'Sell: stop loss above entry, take profit below') + '</span>';
+    } else {
+      profit = +(Math.abs(tp - en) * lots * perLot(sym, tp)).toFixed(2);
+      loss = +(Math.abs(en - sl) * lots * perLot(sym, sl)).toFixed(2);
+      var s = statusOf($('#p_account').value);
+      if (s && s.current_balance) { var rp = loss / s.current_balance * 100; chips += '<span class="chipwarn' + (rp > 2 ? ' bad' : '') + '">Risks ' + fx(rp) + '% of balance</span>'; }
+      if (s && s.daily_loss_limit != null && loss > s.daily_loss_limit - s.daily_loss_used) chips += '<span class="chipwarn bad">Exceeds daily loss room (' + money(s.daily_loss_limit - s.daily_loss_used) + ')</span>';
+      var w = newsNear(sym); if (w) chips += '<span class="chipwarn">' + esc(w) + '</span>';
+      planReady = {profit: profit, loss: loss}; $('#btnPlan').disabled = false;
+    }
+  } else chips = '<span class="chipwarn" style="background:var(--card2);color:var(--mut)">Enter entry, stop loss, take profit and lots</span>';
+  $('#sProfit').textContent = profit == null ? '—' : '+' + money(profit);
+  $('#sLoss').textContent = loss == null ? '—' : '-' + money(loss);
+  $('#sRR').textContent = profit == null ? '—' : '1 : ' + fx(profit / loss);
+  var tot = profit == null ? 0 : profit + loss;
+  $('#rrL').style.width = (tot ? loss / tot * 100 : 50) + '%'; $('#rrP').style.width = (tot ? profit / tot * 100 : 50) + '%';
+  $('#sWarn').innerHTML = chips;
 }
 
 async function savePlan() {
@@ -1132,8 +1184,7 @@ async function savePlan() {
     toast('Saved as pending');
     ['p_entry', 'p_sl', 'p_tp', 'p_lots', 'p_setup', 'p_notes'].forEach(function (id) { $('#' + id).value = ''; });
     PLAN.timeTouched = false; $('#p_time').value = nowLocalInput();
-    planCalc();
-    PLAN.busy = false; await loadPlans(false);
+    planCalc(); PLAN.busy = false; await loadPlans(false);
   } catch (e) { toast(e.message, true); planCalc(); }
 }
 
@@ -1150,9 +1201,8 @@ async function loadPlans(runCheck) {
     }
     var res = await Promise.allSettled([call('getPlans'), call('getPrices')]);
     if (res[0].status === 'fulfilled') PLAN.plans = res[0].value;
-    if (res[1].status === 'fulfilled') { PLAN.prices = res[1].value; PLAN.priceErr = ''; }
-    else PLAN.priceErr = res[1].reason.message;
-    drawTicker(); drawPlans();
+    if (res[1].status === 'fulfilled') { PLAN.prices = res[1].value; PLAN.priceErr = ''; } else PLAN.priceErr = res[1].reason.message;
+    drawTicker(); drawPlans(); planCalc();
   } finally { PLAN.busy = false; }
 }
 
@@ -1160,11 +1210,11 @@ function drawTicker() {
   var box = $('#ticker');
   if (PLAN.priceErr) { box.innerHTML = '<span class="neg">' + esc(PLAN.priceErr) + '</span>'; return; }
   if (!PLAN.prices) return;
-  box.innerHTML = SYMBOLS.map(function (s) {
+  box.innerHTML = Object.keys(INFO).map(function (s) {
     var q = PLAN.prices.prices[s];
-    return '<div class="tick"><div class="k">' + s + '</div><div class="v">' + (q ? q.mid.toFixed(DEC[s]) : '—') + '</div></div>';
+    return '<button class="tick" data-pair="' + s + '"><div class="k">' + s + '</div><div class="v">' + (q ? q.mid.toFixed(DEC[s]) : '—') + '</div></button>';
   }).join('');
-  $('#tickMeta').textContent = 'Updated ' + hm(PLAN.prices.time);
+  $('#tickMeta').textContent = 'Tap a pair for details · updated ' + hm(PLAN.prices.time);
 }
 
 function drawPlans() {
@@ -1172,10 +1222,10 @@ function drawPlans() {
   var head = PLAN.err ? '<div class="banner" style="margin-bottom:8px">' + esc(PLAN.err) + '</div>' : '';
   if (!PLAN.plans.length) { box.innerHTML = head + '<div class="mut">No pending trades. Plan one above.</div>'; return; }
   box.innerHTML = head + PLAN.plans.map(function (p) {
-    var q = px[p.symbol], d = DEC[p.symbol], buy = p.direction === 'buy', cur = q ? q.mid : null;
+    var q = px[p.symbol], buy = p.direction === 'buy', cur = q ? q.mid : null;
     var prog = cur == null ? null : (cur - p.stop_price) / (p.target_price - p.stop_price);
     var bar = prog == null ? '' : '<div class="bar" style="margin-top:8px"><div class="track"><div class="fill" style="width:' + Math.max(0, Math.min(100, prog * 100)) + '%;background:' + (prog >= 0.5 ? 'var(--green)' : 'var(--red)') + '"></div></div>' +
-      '<div class="lbl" style="margin:4px 0 0"><span>SL ' + p.stop_price + '</span><span>' + cur.toFixed(d) + '</span><span>TP ' + p.target_price + '</span></div></div>';
+      '<div class="lbl" style="margin:4px 0 0"><span>SL ' + p.stop_price + '</span><span>' + cur.toFixed(DEC[p.symbol]) + '</span><span>TP ' + p.target_price + '</span></div></div>';
     var fl = p.status === 'open' && cur != null ? (buy ? 1 : -1) * (cur - p.entry_price) * p.lots * perLot(p.symbol, cur) : null;
     return '<div class="pcard"><div class="rowb"><div><b>' + esc(p.symbol) + '</b> <span class="badge ' + esc(p.direction) + '">' + esc(p.direction) + '</span> <span class="badge ' + esc(p.status) + '">' + esc(p.status) + '</span>' +
       '<div class="mut" style="margin-top:2px">' + fx(p.lots) + ' lots · entry ' + p.entry_price + ' · ' + esc(stratName(p.strategy_id)) + '</div></div>' +
@@ -1187,8 +1237,40 @@ function drawPlans() {
 
 async function cancelPlan(id) {
   if (!confirm('Cancel this planned trade?')) return;
-  try { await call('cancelPlan', id); toast('Plan cancelled', 'info'); await loadPlans(false); }
-  catch (e) { toast(e.message, true); }
+  try { await call('cancelPlan', id); toast('Plan cancelled', 'info'); await loadPlans(false); } catch (e) { toast(e.message, true); }
+}
+
+/* ---- pair detail card ---- */
+function openPair(sym) {
+  var I = INFO[sym], q = PLAN.prices && PLAN.prices.prices[sym], d = DEC[sym];
+  var perUnit = q ? perLot(sym, q.mid) * I.us : null;
+  var ev = (PLAN.news || []).filter(function (e) { return SYM_CUR[sym].indexOf(e.currency) >= 0 && new Date(e.time) > Date.now() && e.impact !== 'Low'; })
+    .sort(function (a, b) { return new Date(a.time) - new Date(b.time); }).slice(0, 3);
+  var kv = function (k, v) { return '<div><div class="k">' + k + '</div><div class="v" style="font-size:13px">' + v + '</div></div>'; };
+  $('#modalBody').innerHTML = '<button class="icon x" data-close>✕</button>' +
+    '<div><b style="font-size:22px">' + sym + '</b> <span class="badge buy">' + esc(I.nick) + '</span><div class="mut">' + esc(I.name) + '</div></div>' +
+    '<div class="big" style="margin-top:8px">' + (q ? q.mid.toFixed(d) : '—') + '</div>' +
+    (q && q.ask !== q.bid ? '<div class="mut">Bid ' + q.bid.toFixed(d) + ' · Ask ' + q.ask.toFixed(d) + ' · Spread ' + fx((q.ask - q.bid) / I.us, 1) + ' ' + I.u + '</div>' : '') +
+    '<div id="pcStats" data-sym="' + sym + '" class="hint">Loading today\'s range…</div>' +
+    '<div class="kv">' + kv('Contract size', I.size) + kv('Value per ' + I.unit + ', 1.00 lot', perUnit == null ? '—' : money(perUnit)) +
+    kv('Value per ' + I.unit + ', 0.01 lot', perUnit == null ? '—' : money(perUnit / 100)) + kv('Most active', I.sess) + '</div>' +
+    '<div class="card" style="background:var(--card2)"><h3>What moves it</h3><div>' + esc(I.drv) + '</div></div>' +
+    '<div class="card" style="background:var(--card2)"><h3>Next events</h3>' + (ev.length ? ev.map(function (e) {
+      return '<div class="list-row"><span><i class="imp ' + esc(e.impact) + '"></i> ' + esc(e.currency) + ' ' + esc(e.title) + '</span><span class="mut">' + hm(e.time) + ' · in ' + until(new Date(e.time) - Date.now()) + '</span></div>';
+    }).join('') : '<div class="mut">No medium or high-impact events left this week.</div>') + '</div>' +
+    '<div class="card" style="background:var(--card2)"><h3>Legend</h3><div class="leg">' +
+    '<div><i style="background:var(--green)"></i>Ask: the price you buy at</div><div><i style="background:var(--red)"></i>Bid: the price you sell at</div>' +
+    '<div><i style="background:var(--acc)"></i>Spread: ask minus bid, your entry cost</div>' +
+    '<div><i style="background:var(--amber)"></i>Range bar: red is today\'s low, green is today\'s high, the white mark is now</div>' +
+    '<div><i class="imp High" style="width:9px;height:9px;margin-right:8px"></i>High impact · <i class="imp Medium" style="width:9px;height:9px;margin:0 8px"></i>Medium · <i class="imp Low" style="width:9px;height:9px;margin:0 8px"></i>Low</div></div></div>' +
+    '<button class="btn full" data-planpair="' + sym + '">Plan a trade on ' + sym + '</button>';
+  $('#modal').hidden = false;
+  call('getPairStats', sym).then(function (s) {
+    var el = $('#pcStats'); if (!el || el.dataset.sym !== sym) return;
+    var cur = q ? q.mid : s.open, pos = Math.max(0, Math.min(100, (cur - s.low) / ((s.high - s.low) || 1) * 100)), chg = cur - s.prevClose;
+    el.className = ''; el.innerHTML = '<div class="rng"><b style="left:' + pos + '%"></b></div><div class="rowb mut"><span>Low ' + s.low.toFixed(d) + '</span><span>High ' + s.high.toFixed(d) + '</span></div>' +
+      '<div class="rowb" style="margin-top:8px"><span class="' + cls(chg) + '"><b>' + (chg > 0 ? '+' : '') + fx(chg / s.prevClose * 100) + '%</b> vs yesterday\'s close</span><span class="mut">5-day avg range ' + fx(s.avgRange / I.us, I.us < 1 ? 0 : 1) + ' ' + I.u + '</span></div>';
+  }).catch(function () { var el = $('#pcStats'); if (el) el.textContent = 'Range data unavailable'; });
 }
 
 function renderPlan() {
@@ -1200,6 +1282,7 @@ function renderPlan() {
   planCalc(); loadPlans(true);
 }
 
+/* ---- news ---- */
 async function renderNews() {
   if (!PLAN.news || Date.now() - PLAN.newsAt > 1800000) {
     $('#newsList').innerHTML = '<div class="mut">Loading…</div>';
@@ -1210,41 +1293,64 @@ async function renderNews() {
 }
 
 function drawNews() {
-  var cur = ['USD', 'EUR', 'GBP', 'JPY'], now = Date.now(), today = new Date().toDateString();
-  var rank = {High: 3, Medium: 2, Low: 1, Holiday: 0};
+  var now = Date.now(), rank = {High: 3, Medium: 2, Low: 1, Holiday: 0};
   var min = PLAN.imp === 'High' ? 3 : PLAN.imp === 'Medium' ? 2 : 0;
+  var d0 = new Date(); if (PLAN.day === 'tomorrow') d0.setDate(d0.getDate() + 1);
+  var dayKey = d0.toDateString();
   var list = PLAN.news.filter(function (e) {
-    return cur.indexOf(e.currency) >= 0 && (rank[e.impact] || 0) >= min && (PLAN.day === 'week' || new Date(e.time).toDateString() === today);
+    var okC = PLAN.cur === 'ALL' || (PLAN.cur === 'MINE' ? MINE.indexOf(e.currency) >= 0 : e.currency === PLAN.cur);
+    return okC && (rank[e.impact] || 0) >= min && (PLAN.day === 'week' || new Date(e.time).toDateString() === dayKey);
   }).sort(function (a, b) { return new Date(a.time) - new Date(b.time); });
-  var html = '', last = '';
+  var nx = PLAN.news.filter(function (e) { return e.impact === 'High' && new Date(e.time) > now; }).sort(function (a, b) { return new Date(a.time) - new Date(b.time); })[0];
+  $('#newsNext').innerHTML = nx ? 'Next high-impact: <b>' + esc(nx.currency) + ' ' + esc(nx.title) + '</b> in <span class="amb">' + until(new Date(nx.time) - now) + '</span>' : '';
+  var last = '', rows = '';
   list.forEach(function (e) {
-    var t = new Date(e.time), day = t.toLocaleDateString('en-GB', {weekday: 'short', day: '2-digit', month: 'short'}), diff = t - now;
-    if (day !== last) { html += '<h3 style="margin-top:12px">' + day + '</h3>'; last = day; }
-    html += '<div class="nrow' + (diff < 0 ? ' past' : '') + '"><i class="imp ' + esc(e.impact) + '"></i><div style="flex:1"><div><b>' + hm(e.time) + '</b> · <b>' + esc(e.currency) + '</b> ' + esc(e.title) + '</div>' +
-      ((e.forecast || e.previous) ? '<div class="mut">Forecast ' + esc(e.forecast || '—') + ' · Previous ' + esc(e.previous || '—') + '</div>' : '') + '</div>' +
-      (diff > 0 && diff < 864e5 ? '<span class="amb">in ' + until(diff) + '</span>' : '') + '</div>';
+    var t = new Date(e.time), day = t.toLocaleDateString('en-GB', {weekday: 'long', day: '2-digit', month: 'short'}), diff = t - now;
+    if (day !== last) { rows += '<tr class="dayrow"><td colspan="8">' + day + '</td></tr>'; last = day; }
+    var tags = pairsFor(e.currency).map(function (s) { return '<span class="pp">' + s + '</span>'; }).join('');
+    rows += '<tr class="' + (diff < 0 ? 'past' : '') + '"><td>' + hm(e.time) + '</td><td><b>' + esc(e.currency) + '</b></td><td><i class="imp ' + esc(e.impact) + '" title="' + esc(e.impact) + '"></i></td>' +
+      '<td class="ev">' + esc(e.title) + '<div>' + tags + '</div></td><td>' + esc(e.actual || '—') + '</td><td>' + esc(e.forecast || '—') + '</td><td>' + esc(e.previous || '—') + '</td>' +
+      '<td class="amb">' + (diff > 0 && diff < 864e5 ? 'in ' + until(diff) : '') + '</td></tr>';
   });
-  $('#newsList').innerHTML = html || '<div class="mut">No events match these filters.</div>';
+  $('#newsList').innerHTML = rows ? '<table class="ntbl"><thead><tr><th>Time</th><th>Cur</th><th></th><th style="text-align:left">Event</th><th>Actual</th><th>Forecast</th><th>Previous</th><th></th></tr></thead><tbody>' + rows + '</tbody></table>' : '<div class="mut">No events match these filters.</div>';
   $('#newsMeta').textContent = list.length + ' events';
 }
 
 function bindPlan() {
   $('#p_dir').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) pSetDir(b.dataset.v); });
-  ['p_account', 'p_symbol', 'p_entry', 'p_sl', 'p_tp', 'p_lots'].forEach(function (id) { $('#' + id).addEventListener('input', planCalc); });
+  $('#p_pairs').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) pSetSym(b.dataset.sym); });
+  $('#p_lotq').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) { $('#p_lots').value = b.dataset.l; planCalc(); } });
+  $('#qLive').addEventListener('click', function () {
+    var c = curPx($('#p_symbol').value);
+    if (c == null) return toast('Live price not loaded yet', 'info');
+    $('#p_entry').value = c.toFixed(DEC[$('#p_symbol').value]); planCalc();
+  });
+  $('#p_rr').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var en = num($('#p_entry').value), sl = num($('#p_sl').value), sym = $('#p_symbol').value;
+    if (!en || !sl) return toast('Enter entry and stop loss first', 'info');
+    var k = Number(b.dataset.r), dist = Math.abs(en - sl);
+    $('#p_tp').value = (PLAN.dir === 'buy' ? en + dist * k : en - dist * k).toFixed(DEC[sym]); planCalc();
+  });
+  ['p_account', 'p_entry', 'p_sl', 'p_tp', 'p_lots'].forEach(function (id) { $('#' + id).addEventListener('input', planCalc); });
   $('#p_time').addEventListener('input', function () { PLAN.timeTouched = true; planCalc(); });
   $('#btnPlan').addEventListener('click', savePlan);
   $('#btnCheck').addEventListener('click', function () { loadPlans(true); });
-  $('#newsDay').addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return;
-    PLAN.day = b.dataset.d; $$('#newsDay button').forEach(function (x) { x.classList.toggle('on', x === b); }); drawNews();
+  [['newsDay', 'd', 'day'], ['newsImp', 'i', 'imp'], ['newsCur', 'c', 'cur']].forEach(function (g) {
+    $('#' + g[0]).addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      PLAN[g[2]] = b.dataset[g[1]]; $$('#' + g[0] + ' button').forEach(function (x) { x.classList.toggle('on', x === b); }); drawNews();
+    });
   });
-  $('#newsImp').addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return;
-    PLAN.imp = b.dataset.i; $$('#newsImp button').forEach(function (x) { x.classList.toggle('on', x === b); }); drawNews();
+  document.addEventListener('click', function (e) {
+    var t;
+    if ((t = e.target.closest('[data-cancelplan]'))) return cancelPlan(t.dataset.cancelplan);
+    if ((t = e.target.closest('[data-pair]'))) return openPair(t.dataset.pair);
+    if ((t = e.target.closest('[data-planpair]'))) { closeModal(); pSetSym(t.dataset.planpair); window.scrollTo(0, 0); }
   });
-  document.addEventListener('click', function (e) { var b = e.target.closest('[data-cancelplan]'); if (b) cancelPlan(b.dataset.cancelplan); });
   setInterval(function () { if (S.tab === 'plan' && document.visibilityState === 'visible' && S.loaded) loadPlans(true); }, 45000);
 }
+
 /* ---------- loading & routing ---------- */
 function showBanner(msg) { var b = $('#banner'); b.hidden = !msg; b.textContent = msg ? 'Some data failed to load: ' + msg : ''; }
 function setUpdated() { $('#updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'}); }
