@@ -168,6 +168,16 @@ tr.best td:first-child::before{content:'★ ';color:var(--amber)}
   .modal{align-items:center}
   .sheet{border-radius:18px;animation:sheetInDesktop .22s ease}
 }
+  .ticker{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}
+.tick{background:var(--card2);border-radius:10px;padding:8px 10px}
+.tick .k{font-size:11px;color:var(--mut)}.tick .v{font-weight:800;font-size:16px}
+.badge.pending{background:rgba(245,158,11,.15);color:var(--amber)}
+.badge.open{background:rgba(59,130,246,.15);color:var(--blue)}
+.pcard{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
+.nrow{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.nrow.past{opacity:.45}
+.imp{width:9px;height:9px;border-radius:50%;margin-top:6px;flex:0 0 9px}
+.imp.High{background:var(--red)}.imp.Medium{background:var(--amber)}.imp.Low{background:#facc15}.imp.Holiday{background:var(--mut)}
 </style>
 </head>
 <body>
@@ -177,6 +187,8 @@ tr.best td:first-child::before{content:'★ ';color:var(--amber)}
   <div class="brand"><span class="logo">MT</span>Mikey<span>Trades</span></div>
   <nav class="navlinks" id="nav">
     <button data-tab="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg>Home</button>
+    <button data-tab="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Plan</button>
+<button data-tab="news"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h13v14H6a2 2 0 0 1-2-2Z"/><path d="M17 9h3v8a2 2 0 0 1-2 2M8 9h6M8 13h6"/></svg>News</button>
     <button data-tab="trades"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3Z"/><path d="M4 4v13a3 3 0 0 0 3 3"/></svg>Trades</button>
     <button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Log</button>
     <button data-tab="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>Stats</button>
@@ -268,7 +280,40 @@ tr.best td:first-child::before{content:'★ ';color:var(--amber)}
       <div class="card"><div class="rowb"><h3>Calendar</h3><div class="chips"><button id="calPrev">‹</button><button id="calNext">›</button></div></div>
         <div id="calTitle" style="margin-bottom:8px;font-weight:700"></div><div class="cal" id="cal"></div></div>
     </section>
+    <!-- PLAN -->
+<section class="tab" id="tab-plan" hidden>
+  <div class="card"><div class="rowb"><h3>Live prices</h3><span class="mut" id="tickMeta"></span></div><div class="ticker" id="ticker"><span class="mut">Loading…</span></div></div>
+  <div class="card">
+    <h3>Plan a trade</h3>
+    <div class="form">
+      <label>Account<select id="p_account"></select></label>
+      <label>Strategy<select id="p_strategy"></select></label>
+      <label>Pair<select id="p_symbol"><option>XAUUSD</option><option>GBPUSD</option><option>USDJPY</option><option>EURUSD</option><option>DXY</option></select></label>
+      <div class="lab">Direction<div class="seg" id="p_dir"><button type="button" data-v="buy" class="on">Buy</button><button type="button" data-v="sell">Sell</button></div></div>
+      <label>Entry price<input id="p_entry" type="number" step="any" inputmode="decimal"></label>
+      <label>Stop loss price<input id="p_sl" type="number" step="any" inputmode="decimal"></label>
+      <label>Take profit price<input id="p_tp" type="number" step="any" inputmode="decimal"></label>
+      <label>Lot size<input id="p_lots" type="number" step="0.01" inputmode="decimal"></label>
+      <label class="full">Date and time<input id="p_time" type="datetime-local"></label>
+      <label class="full">Setup tag<input id="p_setup" list="setupList" placeholder="e.g. OB retest" autocomplete="off"></label>
+      <label class="full">Notes<textarea id="p_notes" rows="2" placeholder="Why this trade"></textarea></label>
+    </div>
+    <div class="calc-out" id="pCalc"></div>
+    <button class="btn full" id="btnPlan" disabled>Save as pending</button>
+  </div>
+  <div class="card"><div class="rowb"><h3>Pending and open</h3><button class="btn ghost sm" id="btnCheck">Check now</button></div><div id="planList"></div></div>
+</section>
 
+<!-- NEWS -->
+<section class="tab" id="tab-news" hidden>
+  <div class="card">
+    <div class="rowb"><h3>Economic calendar</h3><span class="mut" id="newsMeta"></span></div>
+    <div class="chips" id="newsDay"><button data-d="today" class="on">Today</button><button data-d="week">This week</button></div>
+    <div class="chips" id="newsImp" style="margin-top:8px"><button data-i="High" class="on">High</button><button data-i="Medium">Medium+</button><button data-i="All">All</button></div>
+    <div id="newsList" style="margin-top:8px"></div>
+    <div class="hint">USD, EUR, GBP and JPY events, in your device's time zone. Source: Forex Factory's free weekly feed (forecast and previous only).</div>
+  </div>
+</section>
     <!-- MORE -->
     <section class="tab" id="tab-more" hidden>
       <div class="chips" id="moreChips" style="margin-bottom:12px">
@@ -440,10 +485,11 @@ var charts = {};
 /* ---------- instrument specs (USD account) ---------- */
 // pp = account-currency value of a 1.00 price move for 1 lot. inv = quote currency is not USD (divide by price).
 var SPECS = {
-  XAUUSD: {pp: 100}, EURUSD: {pp: 100000}, GBPUSD: {pp: 100000}, AUDUSD: {pp: 100000}, NZDUSD: {pp: 100000},
-  USDJPY: {pp: 100000, inv: true}, USDCAD: {pp: 100000, inv: true}, USDCHF: {pp: 100000, inv: true}
+  XAUUSD: {pp: 100}, EURUSD: {pp: 100000}, GBPUSD: {pp: 100000},
+  USDJPY: {pp: 100000, inv: true},
+  DXY: {pp: 1000}   // CHECK your broker's contract spec
 };
-var SYMBOLS = ['XAUUSD', 'EURUSD', 'GBPUSD', 'USDJPY', 'USDCAD', 'USDCHF', 'AUDUSD', 'NZDUSD', 'EURJPY', 'GBPJPY', 'US30', 'NAS100'];
+var SYMBOLS = ['XAUUSD', 'GBPUSD', 'USDJPY', 'EURUSD', 'DXY'];
 function perLot(sym, price, custom) {
   var s = SPECS[sym];
   if (s) return s.inv ? s.pp / price : s.pp;
@@ -878,7 +924,7 @@ function calcUpdate() {
   if (lots < 0.01) { out.innerHTML = '<span class="neg">Even 0.01 lots risks ' + money(0.01 * perLotRisk) + ', more than your ' + money(riskAmt) + ' budget.</span>'; return; }
   var actual = lots * perLotRisk, html = '<div class="mut">Position size</div><div class="lots">' + lots.toFixed(2) + ' lots</div>' +
     '<div class="mut">Risk ' + money(actual) + ' (' + fx(actual / bal * 100) + '% of balance) · stop distance ' + fx(dist, dist < 1 ? 5 : 2) +
-    (SPECS[sym] && sym !== 'XAUUSD' ? ' (' + fx(dist / pipSize(sym), 1) + ' pips)' : '') + '</div>';
+    (SPECS[sym] && sym !== 'XAUUSD' && sym !== 'DXY' ? ' (' + fx(dist / pipSize(sym), 1) + ' pips)' : '') + '</div>';
   var s = statusOf($('#c_account').value);
   if (s && s.daily_loss_limit != null) {
     var room = s.daily_loss_limit - s.daily_loss_used;
@@ -975,7 +1021,190 @@ async function archiveTask(id) {
   try { await call('archiveTask', id); S.tasks = await call('getTasks'); renderTasks(); toast('Task removed'); }
   catch (e) { toast(e.message, true); }
 }
+/* ---------- PLAN + NEWS ---------- */
+var PLAN = {plans: [], prices: null, priceErr: '', err: '', news: null, newsAt: 0, day: 'today', imp: 'High', dir: 'buy', timeTouched: false, busy: false};
+var DEC = {XAUUSD: 2, EURUSD: 5, GBPUSD: 5, USDJPY: 3, DXY: 3};
+var SYM_CUR = {XAUUSD: ['USD'], EURUSD: ['EUR', 'USD'], GBPUSD: ['GBP', 'USD'], USDJPY: ['USD', 'JPY'], DXY: ['USD', 'EUR', 'GBP', 'JPY']};
+var planReady = null;
 
+function hm(iso) { return new Date(iso).toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'}); }
+function until(ms) { var m = Math.round(ms / 60000); return m < 60 ? m + 'm' : Math.floor(m / 60) + 'h ' + (m % 60) + 'm'; }
+
+function pSetDir(v) {
+  PLAN.dir = v;
+  $$('#p_dir button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === v); });
+  planCalc();
+}
+
+function newsNear(sym) {
+  if (!PLAN.news) return '';
+  var cur = SYM_CUR[sym] || [], t = $('#p_time').value ? new Date($('#p_time').value).getTime() : Date.now();
+  var hit = PLAN.news.filter(function (e) {
+    var d = new Date(e.time).getTime() - t;
+    return e.impact === 'High' && cur.indexOf(e.currency) >= 0 && d > -15 * 60000 && d < 60 * 60000;
+  })[0];
+  return hit ? 'High-impact ' + hit.currency + ' news: ' + hit.title + ' at ' + hm(hit.time) : '';
+}
+
+function planCalc() {
+  var sym = $('#p_symbol').value, buy = PLAN.dir === 'buy';
+  var en = num($('#p_entry').value), sl = num($('#p_sl').value), tp = num($('#p_tp').value), lots = num($('#p_lots').value);
+  var out = $('#pCalc'), btn = $('#btnPlan');
+  planReady = null; btn.disabled = true;
+  if (!en || !sl || !tp || !(lots > 0)) { out.innerHTML = '<span class="mut">Enter entry, stop loss, take profit and lots.</span>'; return; }
+  if (buy ? !(sl < en && tp > en) : !(sl > en && tp < en)) {
+    out.innerHTML = '<span class="neg">For a ' + (buy ? 'buy' : 'sell') + ', stop loss must be ' + (buy ? 'below' : 'above') + ' entry and take profit ' + (buy ? 'above' : 'below') + ' it.</span>';
+    return;
+  }
+  var profit = +(Math.abs(tp - en) * lots * perLot(sym, tp)).toFixed(2);
+  var loss = +(Math.abs(en - sl) * lots * perLot(sym, sl)).toFixed(2);
+  var html = '<div class="rowb"><div><div class="mut">Expected profit (TP)</div><div class="big pos">+' + money(profit) + '</div></div>' +
+    '<div style="text-align:right"><div class="mut">Expected loss (SL)</div><div class="big neg">-' + money(loss) + '</div></div></div>' +
+    '<div class="mut" style="margin-top:6px">R:R ' + fx(profit / loss) + ' : 1';
+  var s = statusOf($('#p_account').value);
+  if (s && s.current_balance) html += ' · risks ' + fx(loss / s.current_balance * 100) + '% of balance';
+  html += '</div>';
+  if (s && s.daily_loss_limit != null) {
+    var room = s.daily_loss_limit - s.daily_loss_used;
+    if (loss > room) html += '<div class="neg" style="margin-top:6px">⚠ Loss exceeds daily loss room left (' + money(room) + ')</div>';
+  }
+  var warn = newsNear(sym);
+  if (warn) html += '<div class="amb" style="margin-top:6px">⚠ ' + esc(warn) + '</div>';
+  out.innerHTML = html;
+  planReady = {profit: profit, loss: loss};
+  btn.disabled = false;
+}
+
+async function savePlan() {
+  if (!planReady) return;
+  var acc = $('#p_account').value;
+  if (!acc) return toast('Pick an account (add one under More → Setup)', true);
+  var when = PLAN.timeTouched && $('#p_time').value ? new Date($('#p_time').value).toISOString() : new Date().toISOString();
+  var btn = $('#btnPlan'); btn.disabled = true;
+  try {
+    await call('savePlan', {
+      account_id: acc, strategy_id: $('#p_strategy').value || null, symbol: $('#p_symbol').value, direction: PLAN.dir,
+      lots: num($('#p_lots').value), planned_at: when, entry_price: num($('#p_entry').value),
+      stop_price: num($('#p_sl').value), target_price: num($('#p_tp').value),
+      risk_amount: planReady.loss, exp_profit: planReady.profit, exp_loss: planReady.loss,
+      setup_tag: $('#p_setup').value.trim() || null, notes: $('#p_notes').value.trim() || null
+    });
+    toast('Saved as pending');
+    ['p_entry', 'p_sl', 'p_tp', 'p_lots', 'p_setup', 'p_notes'].forEach(function (id) { $('#' + id).value = ''; });
+    PLAN.timeTouched = false; $('#p_time').value = nowLocalInput();
+    planCalc();
+    PLAN.busy = false; await loadPlans(false);
+  } catch (e) { toast(e.message, true); planCalc(); }
+}
+
+async function loadPlans(runCheck) {
+  if (PLAN.busy) return;
+  PLAN.busy = true;
+  try {
+    if (runCheck) {
+      try {
+        var r = await call('checkPending');
+        PLAN.err = r && r.errors && r.errors.length ? r.errors[0] : '';
+        if (r && r.resolved) { toast(r.resolved + ' planned trade(s) closed automatically', 'info'); refreshData(false); }
+      } catch (e) { PLAN.err = e.message; }
+    }
+    var res = await Promise.allSettled([call('getPlans'), call('getPrices')]);
+    if (res[0].status === 'fulfilled') PLAN.plans = res[0].value;
+    if (res[1].status === 'fulfilled') { PLAN.prices = res[1].value; PLAN.priceErr = ''; }
+    else PLAN.priceErr = res[1].reason.message;
+    drawTicker(); drawPlans();
+  } finally { PLAN.busy = false; }
+}
+
+function drawTicker() {
+  var box = $('#ticker');
+  if (PLAN.priceErr) { box.innerHTML = '<span class="neg">' + esc(PLAN.priceErr) + '</span>'; return; }
+  if (!PLAN.prices) return;
+  box.innerHTML = SYMBOLS.map(function (s) {
+    var q = PLAN.prices.prices[s];
+    return '<div class="tick"><div class="k">' + s + '</div><div class="v">' + (q ? q.mid.toFixed(DEC[s]) : '—') + '</div></div>';
+  }).join('');
+  $('#tickMeta').textContent = 'Updated ' + hm(PLAN.prices.time);
+}
+
+function drawPlans() {
+  var box = $('#planList'), px = (PLAN.prices && PLAN.prices.prices) || {};
+  var head = PLAN.err ? '<div class="banner" style="margin-bottom:8px">' + esc(PLAN.err) + '</div>' : '';
+  if (!PLAN.plans.length) { box.innerHTML = head + '<div class="mut">No pending trades. Plan one above.</div>'; return; }
+  box.innerHTML = head + PLAN.plans.map(function (p) {
+    var q = px[p.symbol], d = DEC[p.symbol], buy = p.direction === 'buy', cur = q ? q.mid : null;
+    var prog = cur == null ? null : (cur - p.stop_price) / (p.target_price - p.stop_price);
+    var bar = prog == null ? '' : '<div class="bar" style="margin-top:8px"><div class="track"><div class="fill" style="width:' + Math.max(0, Math.min(100, prog * 100)) + '%;background:' + (prog >= 0.5 ? 'var(--green)' : 'var(--red)') + '"></div></div>' +
+      '<div class="lbl" style="margin:4px 0 0"><span>SL ' + p.stop_price + '</span><span>' + cur.toFixed(d) + '</span><span>TP ' + p.target_price + '</span></div></div>';
+    var fl = p.status === 'open' && cur != null ? (buy ? 1 : -1) * (cur - p.entry_price) * p.lots * perLot(p.symbol, cur) : null;
+    return '<div class="pcard"><div class="rowb"><div><b>' + esc(p.symbol) + '</b> <span class="badge ' + esc(p.direction) + '">' + esc(p.direction) + '</span> <span class="badge ' + esc(p.status) + '">' + esc(p.status) + '</span>' +
+      '<div class="mut" style="margin-top:2px">' + fx(p.lots) + ' lots · entry ' + p.entry_price + ' · ' + esc(stratName(p.strategy_id)) + '</div></div>' +
+      '<div style="text-align:right"><div class="pos">+' + money(p.exp_profit) + '</div><div class="neg">-' + money(p.exp_loss) + '</div></div></div>' + bar +
+      '<div class="hint">' + (p.status === 'pending' ? 'Waiting for price to reach entry' : 'Floating ' + smoney(fl)) + '</div>' +
+      '<div style="margin-top:8px"><button class="btn ghost sm" data-cancelplan="' + esc(p.plan_id) + '">Cancel</button></div></div>';
+  }).join('');
+}
+
+async function cancelPlan(id) {
+  if (!confirm('Cancel this planned trade?')) return;
+  try { await call('cancelPlan', id); toast('Plan cancelled', 'info'); await loadPlans(false); }
+  catch (e) { toast(e.message, true); }
+}
+
+function renderPlan() {
+  var accItems = S.accounts.map(function (a) { return {v: a.account_id, l: a.name || a.account_id}; });
+  fillSelect($('#p_account'), accItems, S.acc !== 'ALL' && !$('#p_account').value ? S.acc : null);
+  fillSelect($('#p_strategy'), [{v: '', l: '— none —'}].concat(S.strategies.map(function (s) { return {v: s.strategy_id, l: s.name || s.strategy_id}; })), null);
+  if (!PLAN.timeTouched) $('#p_time').value = nowLocalInput();
+  if (!PLAN.news) call('getNews').then(function (v) { PLAN.news = v; PLAN.newsAt = Date.now(); planCalc(); }).catch(function () {});
+  planCalc(); loadPlans(true);
+}
+
+async function renderNews() {
+  if (!PLAN.news || Date.now() - PLAN.newsAt > 1800000) {
+    $('#newsList').innerHTML = '<div class="mut">Loading…</div>';
+    try { PLAN.news = await call('getNews'); PLAN.newsAt = Date.now(); }
+    catch (e) { $('#newsList').innerHTML = '<div class="neg">' + esc(e.message) + '</div>'; return; }
+  }
+  drawNews();
+}
+
+function drawNews() {
+  var cur = ['USD', 'EUR', 'GBP', 'JPY'], now = Date.now(), today = new Date().toDateString();
+  var rank = {High: 3, Medium: 2, Low: 1, Holiday: 0};
+  var min = PLAN.imp === 'High' ? 3 : PLAN.imp === 'Medium' ? 2 : 0;
+  var list = PLAN.news.filter(function (e) {
+    return cur.indexOf(e.currency) >= 0 && (rank[e.impact] || 0) >= min && (PLAN.day === 'week' || new Date(e.time).toDateString() === today);
+  }).sort(function (a, b) { return new Date(a.time) - new Date(b.time); });
+  var html = '', last = '';
+  list.forEach(function (e) {
+    var t = new Date(e.time), day = t.toLocaleDateString('en-GB', {weekday: 'short', day: '2-digit', month: 'short'}), diff = t - now;
+    if (day !== last) { html += '<h3 style="margin-top:12px">' + day + '</h3>'; last = day; }
+    html += '<div class="nrow' + (diff < 0 ? ' past' : '') + '"><i class="imp ' + esc(e.impact) + '"></i><div style="flex:1"><div><b>' + hm(e.time) + '</b> · <b>' + esc(e.currency) + '</b> ' + esc(e.title) + '</div>' +
+      ((e.forecast || e.previous) ? '<div class="mut">Forecast ' + esc(e.forecast || '—') + ' · Previous ' + esc(e.previous || '—') + '</div>' : '') + '</div>' +
+      (diff > 0 && diff < 864e5 ? '<span class="amb">in ' + until(diff) + '</span>' : '') + '</div>';
+  });
+  $('#newsList').innerHTML = html || '<div class="mut">No events match these filters.</div>';
+  $('#newsMeta').textContent = list.length + ' events';
+}
+
+function bindPlan() {
+  $('#p_dir').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) pSetDir(b.dataset.v); });
+  ['p_account', 'p_symbol', 'p_entry', 'p_sl', 'p_tp', 'p_lots'].forEach(function (id) { $('#' + id).addEventListener('input', planCalc); });
+  $('#p_time').addEventListener('input', function () { PLAN.timeTouched = true; planCalc(); });
+  $('#btnPlan').addEventListener('click', savePlan);
+  $('#btnCheck').addEventListener('click', function () { loadPlans(true); });
+  $('#newsDay').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    PLAN.day = b.dataset.d; $$('#newsDay button').forEach(function (x) { x.classList.toggle('on', x === b); }); drawNews();
+  });
+  $('#newsImp').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    PLAN.imp = b.dataset.i; $$('#newsImp button').forEach(function (x) { x.classList.toggle('on', x === b); }); drawNews();
+  });
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-cancelplan]'); if (b) cancelPlan(b.dataset.cancelplan); });
+  setInterval(function () { if (S.tab === 'plan' && document.visibilityState === 'visible' && S.loaded) loadPlans(true); }, 45000);
+}
 /* ---------- loading & routing ---------- */
 function showBanner(msg) { var b = $('#banner'); b.hidden = !msg; b.textContent = msg ? 'Some data failed to load: ' + msg : ''; }
 function setUpdated() { $('#updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'}); }
@@ -1017,6 +1246,8 @@ function renderTab(name) {
   if (name === 'home') renderHome();
   else if (name === 'trades') renderTrades();
   else if (name === 'stats') renderStats();
+  else if (name === 'plan') renderPlan();
+  else if (name === 'news') renderNews();
   else if (name === 'log') { populateSelects(); if (!$('#f_exit_time').value && !S.editing) $('#f_exit_time').value = nowLocalInput(); }
   else if (name === 'more') showMore(S.more);
 }
@@ -1081,7 +1312,7 @@ function bind() {
 }
 
 function init() {
-  setChartDefaults(); bind(); resetLog(); showTab('home'); loadAll();
+  setChartDefaults(); bind(); bindPlan(); resetLog(); showTab('home'); loadAll();
 }
 init();
 window.__app = {S: S, showTab: showTab, calcStats: calcStats, openTrade: openTrade, riskFor: riskFor, pnlFor: pnlFor, calcUpdate: calcUpdate};
