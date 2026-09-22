@@ -232,9 +232,27 @@ details.cl[open] summary{margin-bottom:8px}
 .am-row .l1{display:flex;justify-content:space-between;gap:10px;font-weight:700}
 .am-row .l2{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--mut);margin-top:2px}
 .am-sep{height:1px;background:var(--line);margin:4px 8px}
+.login-screen{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-screen[hidden]{display:none}
+.login-card{width:100%;max-width:360px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px 24px}
+.login-card .logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--acc),#6366f1);display:flex;align-items:center;justify-content:center;font-weight:800;color:#04121a;margin:0 auto 16px}
+.login-card h2{text-align:center;margin:0 0 4px;font-size:18px}
+.login-card p.mut{text-align:center;margin:0 0 20px}
+.login-card .err{color:var(--red);font-size:13px;margin-top:10px;min-height:16px;text-align:center}
 </style>
 </head>
 <body>
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="logo">MT</div>
+    <h2>Mikey Trades</h2>
+    <p class="mut">Sign in to continue</p>
+    <label>Username<input id="li_user" autocomplete="username"></label>
+    <label style="margin-top:10px">Password<input id="li_pass" type="password" autocomplete="current-password"></label>
+    <button class="btn full" id="li_submit">Sign in</button>
+    <div class="err" id="li_err"></div>
+  </div>
+</div>
 <div class="backdrop" id="backdrop"></div>
 
 <aside class="sidebar" id="sidebar">
@@ -260,6 +278,7 @@ details.cl[open] summary{margin-bottom:8px}
     <button class="am-btn" id="amBtn" aria-haspopup="true"><span id="amLabel">Accounts</span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l4 4 4-4"/></svg></button>
     <div class="am-pop" id="amPop" hidden></div>
   </div>
+  <button class="icon" id="btnLogout" title="Sign out">⏻</button>
   <button class="icon" id="btnRefresh" title="Refresh">⟳</button>
 </div>
   </header>
@@ -490,58 +509,48 @@ function duration(a, b) {
 }
 
 var API_URL = 'https://script.google.com/macros/s/AKfycbyCYMqcLb76VpbpH5v1Jc8KGW9PBBbG11lg1ICARIbYSLeh0mL-w2JWmZxWF43hW1XT/exec';
-var tokenPromise = null;
-function getToken() {
-  var saved = localStorage.getItem('mt_token');
-  if (saved) return Promise.resolve(saved);
-  if (!tokenPromise) {
-    tokenPromise = Promise.resolve().then(function () {
-      return (prompt('Access password:') || '').trim();
-    });
-  }
-  return tokenPromise;
+function showLogin(msg) { $('#loginScreen').hidden = false; $('#li_err').textContent = msg || ''; $('#li_pass').value = ''; $('#li_user').focus(); }
+function hideLogin() { $('#loginScreen').hidden = true; }
+function logout() { localStorage.removeItem('mt_session'); showLogin(''); }
+
+async function doLogin() {
+  var u = $('#li_user').value.trim(), p = $('#li_pass').value;
+  if (!u || !p) { $('#li_err').textContent = 'Enter username and password'; return; }
+  var btn = $('#li_submit'); btn.disabled = true; $('#li_err').textContent = '';
+  try {
+    var res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ fn: 'login', args: [u, p] }) });
+    var j = await res.json();
+    if (!j.ok) throw new Error(j.error || 'Login failed');
+    localStorage.setItem('mt_session', j.data.token);
+    hideLogin(); startApp();
+  } catch (e) { $('#li_err').textContent = e.message; }
+  btn.disabled = false;
 }
 
 // max 3 requests in flight at once, so Apps Script isn't flooded
 var inflight = 0, waiters = [];
-function takeSlot() {
-  return new Promise(function (res) { if (inflight < 3) { inflight++; res(); } else waiters.push(res); });
-}
+function takeSlot() { return new Promise(function (res) { if (inflight < 3) { inflight++; res(); } else waiters.push(res); }); }
 function freeSlot() { var next = waiters.shift(); if (next) next(); else inflight--; }
 
 async function call(fn) {
   var args = Array.prototype.slice.call(arguments, 1);
-  var token = await getToken();
-  var tries = /^get|^checkPending$/.test(fn) ? 3 : 1; // only retry reads, never writes (avoids duplicate trades)
+  var token = localStorage.getItem('mt_session');
+  if (!token) { showLogin(); throw new Error('Not signed in'); }
+  var tries = /^get|^checkPending$/.test(fn) ? 3 : 1; // only retry reads, never writes
   await takeSlot();
   try {
     var j = null, lastErr = null;
     for (var i = 0; i < tries; i++) {
       try {
-        var res = await fetch(API_URL, {
-          method: 'POST',
-          body: JSON.stringify({ fn: fn, args: args, token: token })   // no Content-Type header on purpose
-        });
-        j = await res.json();
-        break;
-      } catch (e) {
-        lastErr = e;
-        await new Promise(function (r) { setTimeout(r, 800 * (i + 1)); });
-      }
+        var res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ fn: fn, args: args, token: token }) });
+        j = await res.json(); break;
+      } catch (e) { lastErr = e; await new Promise(function (r) { setTimeout(r, 800 * (i + 1)); }); }
     }
     if (!j) throw new Error('Network error, please try again (' + (lastErr && lastErr.message) + ')');
-    if (!j.ok) {
-      if (j.error === 'unauthorized') {
-        if (localStorage.getItem('mt_token') === token) localStorage.removeItem('mt_token');
-        tokenPromise = null;
-      }
-      throw new Error(j.error);
-    }
-    localStorage.setItem('mt_token', token);
+    if (!j.ok) { if (j.error === 'unauthorized') logout(); throw new Error(j.error); }
     return j.data;
   } finally { freeSlot(); }
 }
-
 /* ---------- toasts ---------- */
 var TOAST_META = {
   success: {icon: '✓', title: 'Success'},
@@ -1555,7 +1564,7 @@ function bind() {
   $('#calPrev').addEventListener('click', function () { S.cal.m--; if (S.cal.m < 0) { S.cal.m = 11; S.cal.y--; } renderCal(tradesFor()); });
   $('#calNext').addEventListener('click', function () { S.cal.m++; if (S.cal.m > 11) { S.cal.m = 0; S.cal.y++; } renderCal(tradesFor()); });
   $('#moreChips').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) showMore(b.dataset.m); });
-
+  $('#btnLogout').addEventListener('click', function () { if (confirm('Sign out?')) logout(); });
   document.addEventListener('click', function (e) {
     var t;
     if ((t = e.target.closest('[data-trade]'))) return openTrade(t.dataset.trade);
@@ -1588,11 +1597,13 @@ function bind() {
   setInterval(function () { if (document.visibilityState === 'visible' && S.loaded && $('#modal').hidden) refreshData(false); }, 300000);
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && S.loaded && Date.now() - S.lastLoad > 300000) refreshData(false); });
 }
-
-function init() {
+function startApp() {
   setChartDefaults(); bind(); bindPlan(); bindAccMenu(); resetLog(); showTab('home'); loadAll();
 }
-init();
+$('#li_submit').addEventListener('click', doLogin);
+$('#li_pass').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
+$('#li_user').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('#li_pass').focus(); });
+if (localStorage.getItem('mt_session')) { hideLogin(); startApp(); } else { showLogin(); }
 window.__app = {S: S, showTab: showTab, calcStats: calcStats, openTrade: openTrade, riskFor: riskFor, pnlFor: pnlFor, calcUpdate: calcUpdate};
 })();
 </script>
