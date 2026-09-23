@@ -742,6 +742,8 @@ async function call(fn) {
     }
     if (!j) throw new Error('Network error, please try again (' + (lastErr && lastErr.message) + ')');
     if (!j.ok) { if (j.error === 'unauthorized') logout(); throw new Error(j.error); }
+    if (j.data === undefined) throw new Error('Unexpected empty response from server, please retry');
+return j.data;
     return j.data;
   } finally { freeSlot(); }
 }
