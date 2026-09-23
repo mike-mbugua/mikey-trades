@@ -3,6 +3,7 @@
 <head>
 <base target="_top">
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Mikey Trades</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,6 +59,7 @@ h3{margin:0 0 10px;font-size:13px;letter-spacing:.05em;text-transform:uppercase;
 @keyframes sheetIn{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
 @keyframes sheetInDesktop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes toastIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px;transition:border-color .2s ease}
 .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
@@ -68,6 +70,8 @@ h3{margin:0 0 10px;font-size:13px;letter-spacing:.05em;text-transform:uppercase;
 .chips button.on{background:var(--acc);color:#04121a;border-color:var(--acc);font-weight:700}
 input,select,textarea{width:100%;background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:11px 12px;font:inherit;font-size:16px;margin-top:4px;transition:border-color .15s ease,box-shadow .15s ease}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(56,189,248,.15)}
+input[type=checkbox]{width:18px;height:18px;margin:0 8px 0 0;accent-color:var(--acc);flex:0 0 18px}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 textarea{resize:vertical}
 label,.lab{display:block;font-size:12px;color:var(--mut)}
 .btn{background:var(--acc);color:#04121a;border:0;border-radius:10px;padding:13px 16px;font:inherit;font-weight:700;font-size:15px;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
@@ -77,6 +81,8 @@ label,.lab{display:block;font-size:12px;color:var(--mut)}
 .btn.ghost:hover{background:#232e3a;box-shadow:none}
 .btn.danger{background:var(--red);color:#fff}
 .btn.danger:hover{box-shadow:0 6px 18px rgba(239,68,68,.3)}
+.btn.sell{background:var(--red);color:#fff}
+.btn.buy{background:var(--green);color:#04120a}
 .btn.sm{padding:8px 12px;font-size:13px}
 .btn.full{width:100%;margin-top:12px}
 .btn:disabled{opacity:.5;cursor:default;transform:none;box-shadow:none}
@@ -168,7 +174,7 @@ tr.best td:first-child::before{content:'★ ';color:var(--amber)}
   .modal{align-items:center}
   .sheet{border-radius:18px;animation:sheetInDesktop .22s ease}
 }
- /* plan + news */
+/* plan + news */
 .ticker{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .tick{font:inherit;color:inherit;text-align:left;cursor:pointer;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;transition:transform .15s,border-color .15s}
 .tick:hover{transform:translateY(-2px);border-color:var(--acc)}
@@ -205,7 +211,7 @@ tr.best td:first-child::before{content:'★ ';color:var(--amber)}
 .imp{display:inline-block;width:10px;height:10px;border-radius:50%}
 .imp.High{background:var(--red)}.imp.Medium{background:var(--amber)}.imp.Low{background:#facc15}.imp.Holiday{background:var(--mut)}
 @media (max-width:900px){.pf{grid-template-columns:1fr 1fr}.ticker{grid-template-columns:repeat(3,1fr)}}
-@media (max-width:560px){.ticker{grid-template-columns:repeat(2,1fr)}.sum{padding:12px}.sum .amt{font-size:19px}.sum .row{gap:8px}.pf{gap:10px}} 
+@media (max-width:560px){.ticker{grid-template-columns:repeat(2,1fr)}.sum{padding:12px}.sum .amt{font-size:19px}.sum .row{gap:8px}.pf{gap:10px}}
 /* home overview */
 .acc{padding:16px}
 .acc .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
@@ -239,23 +245,52 @@ details.cl[open] summary{margin-bottom:8px}
 .login-card h2{text-align:center;margin:0 0 4px;font-size:18px}
 .login-card p.mut{text-align:center;margin:0 0 20px}
 .login-card .err{color:var(--red);font-size:13px;margin-top:10px;min-height:16px;text-align:center}
-.condrow{background:var(--card2);border-radius:10px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
-.condrow .cf{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:6px}
+/* strategy rules builder */
+.condrow{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.condrow .cf{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:8px}
 .condrow .cf label{font-size:11px}
-.sigtag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px}
+.condrow .cf input,.condrow .cf select{padding:8px 10px;font-size:14px}
+.chk{display:flex!important;align-items:center;font-size:12px!important;color:var(--txt)!important;align-self:end;padding-bottom:9px;cursor:pointer}
+.addrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.addrow button{font:inherit;font-size:12px;font-weight:600;padding:7px 11px;border-radius:99px;border:1px solid var(--line);background:var(--card2);color:var(--txt);cursor:pointer}
+.addrow button:hover{border-color:var(--acc)}
+.addrow button.preset{background:linear-gradient(135deg,var(--acc),#6366f1);color:#04121a;border-color:transparent;font-weight:800}
+/* strategy analysis */
+.sigtag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;white-space:nowrap}
 .sigtag.buy{background:rgba(34,197,94,.15);color:var(--green)}
 .sigtag.sell{background:rgba(239,68,68,.15);color:var(--red)}
 .sigtag.neutral{background:var(--card2);color:var(--mut);border:1px solid var(--line)}
-.stratcard{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
-.perfcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
-.perfcard .pfrow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
-.perfcard .pfrow div{background:var(--card2);border-radius:10px;padding:8px 10px}
-.perfcard .pfrow .k{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--mut);font-weight:700}
-.perfcard .pfrow .v{font-size:15px;font-weight:800;margin-top:2px}
-.mtbl{width:100%;border-collapse:collapse;margin-top:6px}
-.mtbl th,.mtbl td{padding:4px 4px;font-size:12px;text-align:center}
-.mtbl th{color:var(--mut);font-weight:700;font-size:10px;text-transform:uppercase}
-.mtbl td input{padding:6px 4px;margin-top:0;font-size:12px;text-align:center}
+.sigtag.big{font-size:15px;padding:6px 14px}
+.reqtag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--card);color:var(--mut);border:1px solid var(--line);white-space:nowrap}
+.reqtag.on{background:rgba(245,158,11,.15);color:var(--amber);border-color:transparent}
+.inbox{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
+.inbox.req{border-left:3px solid var(--amber)}
+.inbox .src{font-size:11px;color:var(--mut)}
+.inbox .cf{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:8px}
+.inbox label{font-size:11px}
+.inbox input,.inbox select{padding:8px 10px;font-size:14px}
+.otbl{margin-top:8px}
+.otbl th{text-align:center;padding:4px}
+.otbl td{padding:3px;border:0}
+.otbl input{margin:0;padding:7px 6px;font-size:13px;min-width:70px;text-align:right}
+.autolist{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 12px}
+.autolist span{font-size:12px;font-weight:600;padding:5px 10px;border-radius:99px;background:var(--card2);border:1px solid var(--line);color:var(--txt)}
+.probhead{display:flex;justify-content:space-between;align-items:baseline;margin-top:12px;font-weight:800;font-size:18px}
+.probbar{display:flex;height:12px;border-radius:99px;overflow:hidden;margin-top:6px;background:var(--card)}
+.probbar i{display:block;height:100%;transition:width .4s ease}
+.anres .kv .src{font-size:11px;color:var(--mut);font-weight:500;margin-top:2px}
+.condtbl td{vertical-align:top}
+.condtbl .dt{font-size:11px;color:var(--mut);white-space:normal;margin-top:2px;max-width:520px}
+/* strategy performance cards */
+.stratgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
+.scard{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px}
+.scard .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px}
+.scard .nm{font-weight:800;font-size:15px}
+.scard .net{font-size:22px;font-weight:800;letter-spacing:-.02em}
+.scard .g{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.scard .g div{background:var(--card);border-radius:8px;padding:7px 9px}
+.scard .g .k{font-size:10px;color:var(--mut);letter-spacing:.04em;font-weight:700;text-transform:uppercase}
+.scard .g .v{font-weight:700;font-size:13px;margin-top:1px}
 </style>
 </head>
 <body>
@@ -277,13 +312,12 @@ details.cl[open] summary{margin-bottom:8px}
   <nav class="navlinks" id="nav">
     <button data-tab="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg>Home</button>
     <button data-tab="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Plan</button>
-<button data-tab="news"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h13v14H6a2 2 0 0 1-2-2Z"/><path d="M17 9h3v8a2 2 0 0 1-2 2M8 9h6M8 13h6"/></svg>News</button>
+    <button data-tab="news"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h13v14H6a2 2 0 0 1-2-2Z"/><path d="M17 9h3v8a2 2 0 0 1-2 2M8 9h6M8 13h6"/></svg>News</button>
     <button data-tab="trades"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3Z"/><path d="M4 4v13a3 3 0 0 0 3 3"/></svg>Trades</button>
     <button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Log</button>
     <button data-tab="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>Stats</button>
     <button data-tab="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>More</button>
   </nav>
-  
 </aside>
 
 <div class="main">
@@ -291,13 +325,13 @@ details.cl[open] summary{margin-bottom:8px}
     <button class="hamburger" id="btnMenu" aria-label="Menu"><span></span></button>
     <div class="live"><i class="dot"></i><span id="updated">Loading…</span></div>
     <div style="display:flex;gap:8px;align-items:center">
-  <div class="accmenu" id="accMenu">
-    <button class="am-btn" id="amBtn" aria-haspopup="true"><span id="amLabel">Accounts</span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l4 4 4-4"/></svg></button>
-    <div class="am-pop" id="amPop" hidden></div>
-  </div>
-  <button class="icon" id="btnLogout" title="Sign out">⏻</button>
-  <button class="icon" id="btnRefresh" title="Refresh">⟳</button>
-</div>
+      <div class="accmenu" id="accMenu">
+        <button class="am-btn" id="amBtn" aria-haspopup="true"><span id="amLabel">Accounts</span><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4l4 4 4-4"/></svg></button>
+        <div class="am-pop" id="amPop" hidden></div>
+      </div>
+      <button class="icon" id="btnLogout" title="Sign out">⏻</button>
+      <button class="icon" id="btnRefresh" title="Refresh">⟳</button>
+    </div>
   </header>
 
   <main class="app">
@@ -364,7 +398,7 @@ details.cl[open] summary{margin-bottom:8px}
 
     <!-- STATS -->
     <section class="tab" id="tab-stats" hidden>
-      <div class="card"><h3>Pizzoh &amp; strategy performance</h3><div id="perfCards"></div></div>
+      <div class="card"><div class="rowb"><h3>Strategy performance</h3><span class="mut" style="font-size:12px">Follows the account and period filters</span></div><div class="stratgrid" id="stratCards"></div></div>
       <div class="card"><h3>Strategy comparison</h3><div class="tblwrap" id="stratTbl"></div>
         <div class="hint">Cumulative R per strategy (needs a risk amount on each trade). ⚠ marks fewer than 30 trades, too few to trust.</div>
         <div class="chartbox"><canvas id="cStrat"></canvas></div></div>
@@ -378,55 +412,66 @@ details.cl[open] summary{margin-bottom:8px}
       <div class="card"><div class="rowb"><h3>Calendar</h3><div class="chips"><button id="calPrev">‹</button><button id="calNext">›</button></div></div>
         <div id="calTitle" style="margin-bottom:8px;font-weight:700"></div><div class="cal" id="cal"></div></div>
     </section>
-    <!-- PLAN -->
-<section class="tab" id="tab-plan" hidden>
-  <div class="card"><div class="rowb"><h3>Markets</h3><span class="mut" id="tickMeta"></span></div><div class="ticker" id="ticker"></div></div>
-  <div class="card"><div class="rowb"><h3>Strategy analysis</h3><button class="btn ghost sm" id="btnAnalyze">Analyze</button></div>
-  <div id="analysisManual"></div>
-  <div id="analysisBox"><div class="mut">Pick a pair below, then tap Analyze.</div></div>
-</div>
-  <div class="sum">
-    <div class="row">
-      <div><div class="lb">Expected profit</div><div class="amt pos" id="sProfit">—</div></div>
-      <div><div class="lb">Expected loss</div><div class="amt neg" id="sLoss">—</div></div>
-      <div><div class="lb">Risk : Reward</div><div class="amt" id="sRR">—</div></div>
-    </div>
-    <div class="rr"><i id="rrL" style="background:var(--red);width:50%"></i><i id="rrP" style="background:var(--green);width:50%"></i></div>
-    <div id="sWarn"></div>
-  </div>
-  <div class="card">
-    <h3>Trade setup</h3>
-    <input type="hidden" id="p_symbol" value="XAUUSD">
-    <div class="pf">
-      <label class="fld"><span>Account</span><select id="p_account"></select></label>
-      <label class="fld"><span>Strategy</span><select id="p_strategy"></select></label>
-      <label class="fld span2"><span>Setup tag</span><input id="p_setup" list="setupList" placeholder="e.g. OB retest" autocomplete="off"></label>
-      <div class="fld span4"><span>Pair</span><div class="pairs" id="p_pairs"><button type="button" data-sym="XAUUSD" class="on">XAUUSD</button><button type="button" data-sym="GBPUSD">GBPUSD</button><button type="button" data-sym="USDJPY">USDJPY</button><button type="button" data-sym="EURUSD">EURUSD</button><button type="button" data-sym="DXY">DXY</button></div></div>
-      <div class="fld span2"><span>Direction</span><div class="seg" id="p_dir"><button type="button" data-v="buy" class="on">Buy</button><button type="button" data-v="sell">Sell</button></div></div>
-      <label class="fld span2"><span>Date &amp; time</span><input id="p_time" type="datetime-local"></label>
-      <div class="fld"><span>Entry</span><input id="p_entry" type="number" step="any" inputmode="decimal"><div class="sub" id="s_entry"></div><div class="qk"><button type="button" id="qLive">Use live price</button></div></div>
-      <div class="fld"><span>Stop loss</span><input id="p_sl" type="number" step="any" inputmode="decimal"><div class="sub" id="s_sl"></div></div>
-      <div class="fld"><span>Take profit</span><input id="p_tp" type="number" step="any" inputmode="decimal"><div class="sub" id="s_tp"></div><div class="qk" id="p_rr"><button type="button" data-r="1">1R</button><button type="button" data-r="2">2R</button><button type="button" data-r="3">3R</button></div></div>
-      <div class="fld"><span>Lot size</span><input id="p_lots" type="number" step="0.01" inputmode="decimal"><div class="qk" id="p_lotq"><button type="button" data-l="0.01">0.01</button><button type="button" data-l="0.05">0.05</button><button type="button" data-l="0.1">0.10</button><button type="button" data-l="0.5">0.50</button><button type="button" data-l="1">1.00</button></div></div>
-      <label class="fld span4"><span>Notes</span><textarea id="p_notes" rows="2" placeholder="Why this trade"></textarea></label>
-    </div>
-    <button class="btn full" id="btnPlan" disabled>Save as pending</button>
-  </div>
-  <div class="card"><div class="rowb"><h3>Pending and open</h3><button class="btn ghost sm" id="btnCheck">Check now</button></div><div id="planList"></div></div>
-</section>
 
-<!-- NEWS -->
-<section class="tab" id="tab-news" hidden>
-  <div class="card">
-    <div class="rowb"><h3>Economic calendar</h3><span class="mut" id="newsMeta"></span></div>
-    <div id="newsNext" class="hint" style="margin:0 0 10px"></div>
-    <div class="chips" id="newsDay"><button data-d="today" class="on">Today</button><button data-d="tomorrow">Tomorrow</button><button data-d="week">This week</button></div>
-    <div class="chips" id="newsImp" style="margin-top:8px"><button data-i="High">High</button><button data-i="Medium">Medium+</button><button data-i="All" class="on">All</button></div>
-    <div class="chips" id="newsCur" style="margin-top:8px"><button data-c="ALL" class="on">All</button><button data-c="MINE">My pairs</button><button data-c="USD">USD</button><button data-c="EUR">EUR</button><button data-c="GBP">GBP</button><button data-c="JPY">JPY</button><button data-c="CAD">CAD</button><button data-c="AUD">AUD</button><button data-c="NZD">NZD</button><button data-c="CHF">CHF</button><button data-c="CNY">CNY</button></div>
-    <div class="tblwrap" style="margin-top:10px" id="newsList"></div>
-    <div class="hint">Times are in your device's time zone. Pair tags show which of your instruments each currency moves. Source: Forex Factory's free weekly feed.</div>
-  </div>
-</section>
+    <!-- PLAN -->
+    <section class="tab" id="tab-plan" hidden>
+      <div class="card"><div class="rowb"><h3>Markets</h3><span class="mut" id="tickMeta"></span></div><div class="ticker" id="ticker"></div></div>
+
+      <div class="card">
+        <div class="rowb"><h3>Strategy analysis</h3><span class="mut" id="anMeta" style="font-size:12px"></span></div>
+        <div class="pf">
+          <label class="fld span2"><span>Strategy</span><select id="an_strategy"></select></label>
+          <label class="fld span2"><span>Risk per trade (%)</span><input id="an_risk" type="number" step="0.1" min="0.1" value="1" inputmode="decimal"><div class="sub">Lots are sized from the account in Trade setup below</div></label>
+          <div class="fld span4"><span>Pair</span><div class="pairs" id="an_pairs"><button type="button" data-sym="XAUUSD" class="on">XAUUSD</button><button type="button" data-sym="GBPUSD">GBPUSD</button><button type="button" data-sym="USDJPY">USDJPY</button><button type="button" data-sym="EURUSD">EURUSD</button><button type="button" data-sym="DXY">DXY</button></div></div>
+        </div>
+        <div id="an_inputs" style="margin-top:14px"></div>
+        <button class="btn full" id="btnAnalyze">Analyze</button>
+        <div id="analysisBox" class="anres" style="margin-top:12px"></div>
+      </div>
+
+      <div class="sum">
+        <div class="row">
+          <div><div class="lb">Expected profit</div><div class="amt pos" id="sProfit">—</div></div>
+          <div><div class="lb">Expected loss</div><div class="amt neg" id="sLoss">—</div></div>
+          <div><div class="lb">Risk : Reward</div><div class="amt" id="sRR">—</div></div>
+        </div>
+        <div class="rr"><i id="rrL" style="background:var(--red);width:50%"></i><i id="rrP" style="background:var(--green);width:50%"></i></div>
+        <div id="sWarn"></div>
+      </div>
+      <div class="card" id="setupCard">
+        <h3>Trade setup</h3>
+        <input type="hidden" id="p_symbol" value="XAUUSD">
+        <div class="pf">
+          <label class="fld"><span>Account</span><select id="p_account"></select></label>
+          <label class="fld"><span>Strategy</span><select id="p_strategy"></select></label>
+          <label class="fld span2"><span>Setup tag</span><input id="p_setup" list="setupList" placeholder="e.g. OB retest" autocomplete="off"></label>
+          <div class="fld span4"><span>Pair</span><div class="pairs" id="p_pairs"><button type="button" data-sym="XAUUSD" class="on">XAUUSD</button><button type="button" data-sym="GBPUSD">GBPUSD</button><button type="button" data-sym="USDJPY">USDJPY</button><button type="button" data-sym="EURUSD">EURUSD</button><button type="button" data-sym="DXY">DXY</button></div></div>
+          <div class="fld span2"><span>Direction</span><div class="seg" id="p_dir"><button type="button" data-v="buy" class="on">Buy</button><button type="button" data-v="sell">Sell</button></div></div>
+          <label class="fld span2"><span>Date &amp; time</span><input id="p_time" type="datetime-local"></label>
+          <div class="fld"><span>Entry</span><input id="p_entry" type="number" step="any" inputmode="decimal"><div class="sub" id="s_entry"></div><div class="qk"><button type="button" id="qLive">Use live price</button></div></div>
+          <div class="fld"><span>Stop loss</span><input id="p_sl" type="number" step="any" inputmode="decimal"><div class="sub" id="s_sl"></div></div>
+          <div class="fld"><span>Take profit</span><input id="p_tp" type="number" step="any" inputmode="decimal"><div class="sub" id="s_tp"></div><div class="qk" id="p_rr"><button type="button" data-r="1">1R</button><button type="button" data-r="2">2R</button><button type="button" data-r="3">3R</button></div></div>
+          <div class="fld"><span>Lot size</span><input id="p_lots" type="number" step="0.01" inputmode="decimal"><div class="qk" id="p_lotq"><button type="button" data-l="0.01">0.01</button><button type="button" data-l="0.05">0.05</button><button type="button" data-l="0.1">0.10</button><button type="button" data-l="0.5">0.50</button><button type="button" data-l="1">1.00</button></div></div>
+          <label class="fld span4"><span>Notes</span><textarea id="p_notes" rows="2" placeholder="Why this trade"></textarea></label>
+        </div>
+        <button class="btn full" id="btnPlan" disabled>Save as pending</button>
+      </div>
+      <div class="card"><div class="rowb"><h3>Pending and open</h3><button class="btn ghost sm" id="btnCheck">Check now</button></div><div id="planList"></div></div>
+    </section>
+
+    <!-- NEWS -->
+    <section class="tab" id="tab-news" hidden>
+      <div class="card">
+        <div class="rowb"><h3>Economic calendar</h3><span class="mut" id="newsMeta"></span></div>
+        <div id="newsNext" class="hint" style="margin:0 0 10px"></div>
+        <div class="chips" id="newsDay"><button data-d="today" class="on">Today</button><button data-d="tomorrow">Tomorrow</button><button data-d="week">This week</button></div>
+        <div class="chips" id="newsImp" style="margin-top:8px"><button data-i="High">High</button><button data-i="Medium">Medium+</button><button data-i="All" class="on">All</button></div>
+        <div class="chips" id="newsCur" style="margin-top:8px"><button data-c="ALL" class="on">All</button><button data-c="MINE">My pairs</button><button data-c="USD">USD</button><button data-c="EUR">EUR</button><button data-c="GBP">GBP</button><button data-c="JPY">JPY</button><button data-c="CAD">CAD</button><button data-c="AUD">AUD</button><button data-c="NZD">NZD</button><button data-c="CHF">CHF</button><button data-c="CNY">CNY</button></div>
+        <div class="tblwrap" style="margin-top:10px" id="newsList"></div>
+        <div class="hint">Times are in your device's time zone. Pair tags show which of your instruments each currency moves. Source: Forex Factory's free weekly feed.</div>
+      </div>
+    </section>
+
     <!-- MORE -->
     <section class="tab" id="tab-more" hidden>
       <div class="chips" id="moreChips" style="margin-bottom:12px">
@@ -477,7 +522,7 @@ details.cl[open] summary{margin-bottom:8px}
         <div class="card"><h3>Accounts</h3><div id="accList"></div></div>
         <div class="card"><h3>Add strategy</h3>
           <div class="form">
-            <label>Name<input id="s_name" placeholder="e.g. SMC OB v1"></label>
+            <label>Name<input id="s_name" placeholder="e.g. Pizzoh v1"></label>
             <label>Status<select id="s_status"><option>testing</option><option>live</option><option>retired</option></select></label>
             <label class="full">Rules / description<textarea id="s_desc" rows="2"></textarea></label>
           </div>
@@ -485,28 +530,35 @@ details.cl[open] summary{margin-bottom:8px}
           <div class="hint">Put the version in the name (v1, v2) so results stay comparable.</div>
         </div>
         <div class="card"><h3>Strategy rules</h3>
-  <div class="form">
-    <label>Strategy<select id="sr_strategy"></select></label>
-    <label>Timeframe<select id="sr_tf"><option value="H1">H1</option><option value="H4">H4</option><option value="D">Daily</option></select></label>
-    <label>SL: ATR multiplier<input id="sr_atrmult" type="number" step="0.1" value="1.5"></label>
-  </div>
-  <div id="sr_conds"></div>
-  <div class="chips" style="margin-top:8px">
-    <button type="button" class="btn ghost sm" data-addcond="trend_ema">+ Trend (EMA)</button>
-    <button type="button" class="btn ghost sm" data-addcond="structure_swing">+ Structure</button>
-    <button type="button" class="btn ghost sm" data-addcond="near_level">+ Near level</button>
-    <button type="button" class="btn ghost sm" data-addcond="rsi">+ RSI</button>
-    <button type="button" class="btn ghost sm" data-addcond="no_news">+ No-news filter</button>
-    <button type="button" class="btn ghost sm" data-addcond="sentiment_contrarian">+ Sentiment (contrarian)</button>
-    <button type="button" class="btn ghost sm" data-addcond="options_chain">+ Options chain</button>
-    <button type="button" class="btn ghost sm" data-addcond="cme_oi">+ CME open interest</button>
-    <button type="button" class="btn ghost sm" data-addcond="fastbull_walls">+ FastBull walls</button>
-    <button type="button" class="btn ghost sm" data-addcond="cot_commercial">+ COT commercials</button>
-    <button type="button" class="btn ghost sm" data-addcond="manual">+ Manual input</button>
-  </div>
-  <button class="btn full" id="btnSaveRules">Save rules</button>
-  <div class="hint">TP targets the nearest swing/session level beyond entry; SL is ATR × multiplier. Add and save rules per strategy, then run them from the Plan tab. Toggle "Required" on any condition to block the strategy when that input is missing; "Weight" controls how much it counts toward the buy/sell probability.</div>
-</div>
+          <div class="form">
+            <label>Strategy<select id="sr_strategy"></select></label>
+            <label>Timeframe (SL, swings)<select id="sr_tf"><option value="M15">M15</option><option value="H1">H1</option><option value="H4">H4</option><option value="D">Daily</option></select></label>
+            <label>SL: ATR multiplier<input id="sr_atrmult" type="number" step="0.1" value="1.5"></label>
+            <label>Take profit<select id="sr_tp"><option value="prev_week">Previous week high / low</option><option value="swing">Nearest swing / session level</option></select></label>
+            <label>Entry<select id="sr_entry"><option value="walls">Limit at order walls (FastBull + CME)</option><option value="live">Live price</option></select></label>
+            <label>Min probability (%)<input id="sr_minprob" type="number" min="50" max="99" value="60"></label>
+            <label>Walls line up within (× ATR)<input id="sr_align" type="number" step="0.1" value="0.5"></label>
+          </div>
+          <div id="sr_conds" style="margin-top:12px"></div>
+          <div class="addrow">
+            <button type="button" class="preset" id="btnPreset">Load Pizzoh preset</button>
+            <button type="button" data-addcond="trend_mtf">+ Trend (multi-TF)</button>
+            <button type="button" data-addcond="options_chain">+ Options chain</button>
+            <button type="button" data-addcond="cme_oi">+ CME open interest</button>
+            <button type="button" data-addcond="fastbull">+ FastBull order book</button>
+            <button type="button" data-addcond="sentiment">+ Retail sentiment</button>
+            <button type="button" data-addcond="cot">+ COT commercials</button>
+            <button type="button" data-addcond="tech_summary">+ Investing.com summary</button>
+            <button type="button" data-addcond="no_news">+ No-news filter</button>
+            <button type="button" data-addcond="trend_ema">+ Trend (EMA)</button>
+            <button type="button" data-addcond="structure_swing">+ Structure</button>
+            <button type="button" data-addcond="near_level">+ Near level</button>
+            <button type="button" data-addcond="rsi">+ RSI</button>
+            <button type="button" data-addcond="manual">+ Manual buy/sell</button>
+          </div>
+          <button class="btn full" id="btnSaveRules">Save rules</button>
+          <div class="hint">Required conditions block the analysis until you fill them in; optional ones are skipped when empty. Weight sets how much each one counts toward the buy/sell probability.</div>
+        </div>
         <div class="card"><h3>Daily tasks</h3>
           <div style="display:flex;gap:8px"><input id="t_new" placeholder="e.g. Mark up HTF levels" style="margin-top:0"><button class="btn" id="btnAddTask">Add</button></div>
           <div id="taskSetup" style="margin-top:8px"></div>
@@ -606,6 +658,7 @@ async function call(fn) {
     return j.data;
   } finally { freeSlot(); }
 }
+
 /* ---------- toasts ---------- */
 var TOAST_META = {
   success: {icon: '✓', title: 'Success'},
@@ -684,7 +737,8 @@ function calcStats(list) {
   var pnls = list.map(function (t) { return t.net_pnl; });
   return {
     n: n, wins: wins.length, losses: losses.length, winRate: n ? wins.length / n : null,
-    net: sum(pnls), avgWin: wins.length ? gw / wins.length : null, avgLoss: losses.length ? -gl / losses.length : null,
+    net: sum(pnls), grossWin: gw, grossLoss: gl,
+    avgWin: wins.length ? gw / wins.length : null, avgLoss: losses.length ? -gl / losses.length : null,
     pf: gl > 0 ? gw / gl : (gw > 0 ? Infinity : null),
     expR: rs.length ? sum(rs) / rs.length : null, totalR: rs.length ? sum(rs) : null,
     best: n ? Math.max.apply(null, pnls) : null, worst: n ? Math.min.apply(null, pnls) : null
@@ -738,37 +792,19 @@ function setChartDefaults() {
 /* ---------- HOME ---------- */
 function bar(label, ratio, text, mode) {
   var r = ratio == null || !isFinite(ratio) ? 0 : Math.max(0, ratio);
-  var color = mode === 'target' ? (r >= 1 ? 'var(--green)' : 'var(--blue)') : (r < 0.6 ? 'var(--green)' : r < 0.85 ? 'var(--amber)' : 'var(--red)');
+  var color = mode === 'target' ? (r >= 1 ? 'var(--green)' : 'var(--blue)') : mode === 'win' ? (r >= 0.5 ? 'var(--green)' : r >= 0.35 ? 'var(--amber)' : 'var(--red)') : (r < 0.6 ? 'var(--green)' : r < 0.85 ? 'var(--amber)' : 'var(--red)');
   return '<div class="bar"><div class="lbl"><span>' + esc(label) + '</span><span>' + text + '</span></div><div class="track"><div class="fill" style="width:' + Math.min(100, r * 100) + '%;background:' + color + '"></div></div></div>';
-}
-function acctCard(id) {
-  var a = acct(id), s = statusOf(id);
-  if (!a || !s) return '<div class="card"><span class="mut">No status yet for this account.</span></div>';
-  var bars = '';
-  if (s.daily_loss_limit != null) bars += bar('Daily loss', s.daily_loss_used_pct, money(s.daily_loss_used) + ' / ' + money(s.daily_loss_limit));
-  if (s.total_dd_limit != null) bars += bar('Max drawdown', s.total_dd_used_pct, money(s.total_dd_used) + ' / ' + money(s.total_dd_limit));
-  if (s.profit_target != null) bars += bar('Profit target', s.target_progress_pct, money(Math.max(0, s.total_net_pnl)) + ' / ' + money(s.profit_target), 'target');
-  if (s.consistency_limit != null && s.best_day_share_of_profit != null) bars += bar('Consistency (best day share)', s.best_day_share_of_profit / s.consistency_limit, pct(s.best_day_share_of_profit) + ' of ' + pct(s.consistency_limit));
-  return '<div class="card"><div class="rowb"><div><div class="mut">' + esc(s.name) + ' · ' + esc(s.account_type) + '</div><div class="big">' + money(s.current_balance) + '</div></div>' +
-    '<div style="text-align:right"><div class="mut">Today</div><div class="' + cls(s.today_pnl) + '" style="font-size:20px;font-weight:700">' + smoney(s.today_pnl) + '</div>' +
-    '<div class="mut" style="margin-top:4px">Total <span class="' + cls(s.total_net_pnl) + '">' + smoney(s.total_net_pnl) + '</span></div></div></div>' +
-    (bars ? '<div class="bars">' + bars + '</div>' : '') + '</div>';
-}
-function miniCard(a) {
-  var s = statusOf(a.account_id) || {};
-  return '<button class="card mini" data-acc="' + esc(a.account_id) + '"><div class="rowb"><div><div class="mut">' + esc(a.name) + ' · ' + esc(a.account_type) + '</div><div style="font-size:20px;font-weight:700">' + money(s.current_balance != null ? s.current_balance : a.starting_balance) + '</div></div>' +
-    '<div style="text-align:right"><div class="' + cls(s.today_pnl) + '">' + (s.today_pnl != null ? smoney(s.today_pnl) + ' today' : '') + '</div><div class="mut">Total <span class="' + cls(s.total_net_pnl) + '">' + smoney(s.total_net_pnl) + '</span></div></div></div></button>';
 }
 function kpi(k, v, s, c) { return '<div class="kpi"><div class="k">' + k + '</div><div class="v ' + (c || '') + '">' + v + '</div><div class="s">' + (s || '&nbsp;') + '</div></div>'; }
 
 function renderHome() {
   if (!S.accounts.length) {
     $('#statusBox').innerHTML = '<div class="card"><h3>Welcome</h3><p class="mut">No accounts yet. Add your first account (demo, live or prop challenge), then log a trade.</p><button class="btn" data-go="setup">Add an account</button></div>';
-    $('#kpiBox').innerHTML = ''; $('#todayBox').innerHTML = ''; $('#recentBox').innerHTML = '';
+    $('#kpiBox').innerHTML = ''; $('#todayBox').innerHTML = ''; $('#recentBox').innerHTML = ''; $('#overviewBox').innerHTML = '';
     drawEquity([], null); drawDaily([]);
     return;
   }
-$('#statusBox').innerHTML = '';drawOverview();
+  $('#statusBox').innerHTML = ''; drawOverview();
   var list = tradesFor(), st = calcStats(list);
   $('#kpiBox').innerHTML =
     kpi('Net P&L', smoney(st.net), st.n + ' trades', cls(st.net)) +
@@ -782,7 +818,6 @@ $('#statusBox').innerHTML = '';drawOverview();
   drawEquity(curve.pts, curve);
   drawDaily(dailyAgg(list).slice(-30));
 
-  // today
   var accs = S.acc === 'ALL' ? S.accounts : [acct(S.acc)].filter(Boolean);
   var todays = [];
   accs.forEach(function (a) { var d = tradingDayNow(a); todays = todays.concat(S.trades.filter(function (t) { return t.account_id === a.account_id && t.trading_day === d; })); });
@@ -879,32 +914,35 @@ var DIMS = {
   strategy: function (t) { return stratName(t.strategy_id); }
 };
 
-function perfCardHtml(p) {
-  return '<div class="perfcard"><div class="rowb"><b>' + esc(p.name) + '</b><span class="' + cls(p.net) + '" style="font-weight:800">' + smoney(p.net) + '</span></div>' +
-    '<div class="pfrow">' +
-    '<div><div class="k">Trades</div><div class="v">' + p.trades + '</div></div>' +
-    '<div><div class="k">Win rate</div><div class="v">' + pct(p.win_rate) + '</div></div>' +
-    '<div><div class="k">Wins</div><div class="v pos">' + p.wins + '</div></div>' +
-    '<div><div class="k">Losses</div><div class="v neg">' + p.losses + '</div></div>' +
-    '<div><div class="k">Total profit</div><div class="v pos">' + money(p.total_profit) + '</div></div>' +
-    '<div><div class="k">Total loss</div><div class="v neg">' + money(p.total_loss) + '</div></div>' +
-    '<div><div class="k">Net P&amp;L</div><div class="v ' + cls(p.net) + '">' + smoney(p.net) + '</div></div>' +
-    '<div><div class="k">Profit factor</div><div class="v">' + pfText(p.total_loss > 0 ? p.total_profit / p.total_loss : (p.total_profit > 0 ? Infinity : null)) + '</div></div>' +
-    '</div></div>';
-}
-async function loadPerfCards() {
-  var box = $('#perfCards');
+/** One card per strategy: trades, win rate, total profit/loss, net, PF, expectancy, open/pending. */
+function renderStratCards(list) {
+  var box = $('#stratCards');
   if (!box) return;
-  box.innerHTML = '<div class="mut">Loading…</div>';
-  try {
-    var rows = await call('getStrategyPerformance');
-    box.innerHTML = rows.length ? rows.map(perfCardHtml).join('') : '<div class="mut">No strategies yet.</div>';
-  } catch (e) { box.innerHTML = '<div class="neg">' + esc(e.message) + '</div>'; }
+  var by = groupBy(list, function (t) { return t.strategy_id || ''; });
+  var ids = S.strategies.map(function (s) { return s.strategy_id; });
+  by.forEach(function (_, k) { if (ids.indexOf(k) < 0) ids.push(k); });
+  if (!ids.length) { box.innerHTML = '<div class="mut">No strategies yet. Add one under More → Setup.</div>'; return; }
+  var plans = (PLAN.plans || []).filter(function (p) { return S.acc === 'ALL' || p.account_id === S.acc; });
+  var g = function (k, v) { return '<div><div class="k">' + k + '</div><div class="v">' + v + '</div></div>'; };
+  box.innerHTML = ids.map(function (id) {
+    var l = by.get(id) || [], st = calcStats(l), s = S.strategies.find(function (x) { return x.strategy_id === id; });
+    var mine = plans.filter(function (p) { return (p.strategy_id || '') === id; });
+    var nO = mine.filter(function (p) { return p.status === 'open'; }).length, nP = mine.filter(function (p) { return p.status === 'pending'; }).length;
+    return '<div class="scard"><div class="hd"><div><div class="nm">' + esc(stratName(id)) + '</div><div class="mut" style="font-size:12px">' + esc(s ? s.status || '' : 'no strategy tag') +
+      (st.n && st.n < 30 ? ' · <span class="amb">only ' + st.n + ' trades</span>' : '') + '</div></div>' +
+      '<div style="text-align:right"><div class="net ' + cls(st.net) + '">' + smoney(st.net) + '</div><div class="mut" style="font-size:11px">net</div></div></div>' +
+      bar('Win rate', st.winRate, st.n ? pct(st.winRate) + ' · ' + st.wins + 'W / ' + st.losses + 'L' : 'no trades yet', 'win') +
+      '<div class="g">' + g('Trades taken', st.n) + g('Open · pending', nO + ' · ' + nP) +
+      g('Total profit', '<span class="pos">' + money(st.grossWin) + '</span>') + g('Total loss', '<span class="neg">' + money(-st.grossLoss) + '</span>') +
+      g('Profit factor', st.n ? pfText(st.pf) : '—') + g('Expectancy', '<span class="' + cls(st.expR) + '">' + sR(st.expR) + '</span>') +
+      g('Avg win / loss', money(st.avgWin, 0) + ' / ' + money(st.avgLoss, 0)) + g('Last trade', l.length ? fmtD(l[0].exit_time) : '—') + '</div></div>';
+  }).join('');
 }
 
 function renderStats() {
-  loadPerfCards();
   var list = tradesFor(), sorted = asc(list);
+  renderStratCards(list);
+  if (!PLAN.liveAt) loadPlans(false);
   var groups = Array.from(groupBy(list, function (t) { return t.strategy_id || ''; }).entries()).map(function (e) {
     return {id: e[0], name: stratName(e[0]), list: asc(e[1]), st: calcStats(e[1])};
   }).sort(function (a, b) { return (b.st.expR == null ? -1e9 : b.st.expR) - (a.st.expR == null ? -1e9 : a.st.expR); });
@@ -932,7 +970,7 @@ function renderStats() {
   chart('cDD', {type: 'line', data: {labels: curve.pts.map(function (p) { return p.label; }), datasets: [{data: dd.map(function (v) { return +v.toFixed(2); }), borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,.18)', fill: true, tension: .2, pointRadius: 0, borderWidth: 2}]},
     options: baseOpts({scales: {x: {ticks: {maxTicksLimit: 6}}, y: {ticks: {callback: function (v) { return curve.hasBase ? v + '%' : '$' + v; }}}}})}, curve.pts.length < 2);
 
-  var bins = [], edges = [];
+  var edges = [];
   for (var e = -3; e <= 5; e += 0.5) edges.push(e);
   var counts = edges.map(function () { return 0; });
   sorted.forEach(function (t) {
@@ -1158,6 +1196,7 @@ function renderSetup() {
     return '<div class="list-row"><div><b>' + esc(a.name) + '</b><div class="mut">' + esc(a.account_type) + ' · ' + money(a.starting_balance, 0) + (rules ? ' · ' + rules : '') + '</div></div><span class="mut">' + esc(a.status || '') + '</span></div>';
   }).join('') : '<div class="mut">No accounts yet.</div>';
   fillSelect($('#sr_strategy'), S.strategies.map(function (s) { return {v: s.strategy_id, l: s.name || s.strategy_id}; }), null);
+  if ($('#sr_strategy').value !== srLoaded) loadStratRules();
   renderTasks();
 }
 function showMore(name) {
@@ -1189,7 +1228,7 @@ async function addStrategy() {
   var name = $('#s_name').value.trim();
   if (!name) return toast('Give the strategy a name', true);
   var btn = $('#btnAddStrat'); btn.disabled = true;
-  try { await call('saveStrategy', {name: name, description: $('#s_desc').value.trim() || null, status: $('#s_status').value}); toast('Strategy "' + name + '" added'); $('#s_name').value = ''; $('#s_desc').value = ''; await refreshData(true); }
+  try { await call('saveStrategy', {name: name, description: $('#s_desc').value.trim() || null, status: $('#s_status').value}); toast('Strategy "' + name + '" added'); $('#s_name').value = ''; $('#s_desc').value = ''; await refreshData(true); renderSetup(); }
   catch (e) { toast(e.message, true); }
   btn.disabled = false;
 }
@@ -1203,6 +1242,7 @@ async function archiveTask(id) {
   try { await call('archiveTask', id); S.tasks = await call('getTasks'); renderTasks(); toast('Task removed'); }
   catch (e) { toast(e.message, true); }
 }
+
 /* ---------- ACCOUNT MENU ---------- */
 function drawAccMenu() {
   var lab = $('#amLabel'), pop = $('#amPop');
@@ -1234,6 +1274,7 @@ function bindAccMenu() {
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAccMenu(); });
 }
+
 /* ---------- HOME OVERVIEW ---------- */
 function liveHome() { if (Date.now() - (PLAN.liveAt || 0) > 30000) loadPlans(true); }
 
@@ -1329,188 +1370,375 @@ function drawOverview() {
       kpi('Margin used', money(T(function (o) { return o.margin; })), 'estimate') +
       kpi('Open trades', nO, nP + ' pending') + kpi('Closed trades', nC, '') +
       kpi('Trades taken', nC + nO, 'closed + open') + kpi('Most traded', topPair(syms), 'all accounts') + '</div>';
+    html += runningSummaryHTML(os);
   }
-  if (S.acc === 'ALL') html += runningSummaryHTML(os);
   box.innerHTML = html + os.map(function (o) { return accCard(o, S.acc === 'ALL' && os.length > 1); }).join('');
 }
-/* ---------- STRATEGY RULES BUILDER ---------- */
-var CONDLABEL = {trend_ema:'Trend (EMA)', structure_swing:'Structure (HH/HL vs LL/LH)', near_level:'Near swing/session level', rsi:'RSI', no_news:'No-news filter', manual:'Manual input',
-  sentiment_contrarian:'Sentiment (contrarian)', options_chain:'Options chain', cme_oi:'CME open interest', fastbull_walls:'FastBull order book walls', cot_commercial:'COT commercials'};
-var srConds = [];
 
-function condRowHtml(c, i) {
-  var f = '';
-  if (c.type === 'trend_ema') f = '<label>EMA period<input type="number" data-k="period" value="' + (c.params.period||50) + '"></label>';
-  else if (c.type === 'structure_swing') f = '<div class="hint">Last 10 swing highs/lows on the chosen timeframe.</div>';
-  else if (c.type === 'near_level') f = '<label>Within (x ATR)<input type="number" step="0.1" data-k="within_atr" value="' + (c.params.within_atr||0.5) + '"></label>';
-  else if (c.type === 'rsi') f = '<label>Period<input type="number" data-k="period" value="' + (c.params.period||14) + '"></label><label>Oversold<input type="number" data-k="oversold" value="' + (c.params.oversold||30) + '"></label><label>Overbought<input type="number" data-k="overbought" value="' + (c.params.overbought||70) + '"></label>';
-  else if (c.type === 'no_news') f = '<label>Mins before<input type="number" data-k="minutes_before" value="' + (c.params.minutes_before||30) + '"></label><label>Mins after<input type="number" data-k="minutes_after" value="' + (c.params.minutes_after||30) + '"></label>';
-  else if (c.type === 'manual') f = '<label class="full">Label shown when checking<input data-k="label" value="' + esc(c.label||'') + '" placeholder="e.g. Options Delta read"></label>';
-  else if (c.type === 'sentiment_contrarian') f = '<label>Skew threshold %<input type="number" data-k="skew_threshold" value="' + (c.params.skew_threshold||55) + '"></label><div class="hint">Crowd ≥ this % on one side → signal is the opposite side.</div>';
-  else if (c.type === 'options_chain') f = '<label>Balance tolerance %<input type="number" data-k="balance_tolerance" value="' + (c.params.balance_tolerance||15) + '"></label><div class="hint">Reads ATM call/put Delta &amp; price plus IV, per the reversal/continuation/breakout rules.</div>';
-  else if (c.type === 'cme_oi') f = '<div class="hint">Enter the price with the heaviest Put OI and heaviest Call OI when analyzing. Nearer Put level → buy; nearer Call level → sell. The matching level is used as the entry.</div>';
-  else if (c.type === 'fastbull_walls') f = '<div class="hint">Enter the buy-wall and sell-wall price when analyzing. Nearer buy wall → buy; nearer sell wall → sell. The matching level is used as the entry.</div>';
-  else if (c.type === 'cot_commercial') f = '<div class="hint">Enter commercials\' net position when analyzing. Net long → buy; net short → sell.</div>';
-  var reqChecked = c.required ? 'checked' : '';
-  var w = c.weight == null ? 1 : c.weight;
-  return '<div class="condrow" data-idx="' + i + '"><div style="flex:1"><b>' + CONDLABEL[c.type] + '</b><div class="cf">' + f +
-    '<label><input type="checkbox" data-k="_required" ' + reqChecked + '> Required</label>' +
-    '<label>Weight<input type="number" step="0.1" min="0" data-k="_weight" value="' + w + '"></label>' +
-    '</div></div><button type="button" class="btn danger sm" data-rmcond="' + i + '">✕</button></div>';
+/* ---------- STRATEGY CONDITIONS (schema shared by Setup and Plan) ---------- */
+var TECH_OPTS = [['', '—'], ['strong_buy', 'Strong Buy'], ['buy', 'Buy'], ['neutral', 'Neutral'], ['sell', 'Sell'], ['strong_sell', 'Strong Sell']];
+var COND = {
+  trend_mtf: {l: 'Trend (multi-timeframe)', auto: true, src: 'OANDA candles', w: 2,
+    params: [{k: 'tfs', l: 'Timeframes', t: 'text', d: 'M,W,D,H4,H1'}, {k: 'ema', l: 'EMA period', t: 'number', d: 21}, {k: 'min_agree', l: 'Min agreeing (blank = 60%)', t: 'number', d: ''}],
+    help: 'Price vs EMA on each timeframe. The majority is the main trend used for continuation and breakout.'},
+  options_chain: {l: 'Options chain (Delta / IV)', src: 'Investing.com → Forex options (O/N)', w: 2, custom: 'options',
+    params: [{k: 'delta_lo', l: 'Delta zone low', t: 'number', d: 0.45}, {k: 'delta_hi', l: 'Delta zone high', t: 'number', d: 0.55},
+      {k: 'balance_tol', l: 'Balanced if premiums within (0.25 = 25%)', t: 'number', d: 0.25},
+      {k: 'cont_mode', l: 'Continuation direction', t: 'select', d: 'trend', o: [['trend', 'Main trend'], ['premium', 'Pricier side (calls = buy)'], ['dealer', 'Dealer read (calls = sell)']]}],
+    help: 'Reversal: ATM Δ 0.45–0.55 and balanced premiums (trade against the move in). Continuation: one-sided premiums + rising IV. Breakout: ATM Δ outside the zone (go with the trend). Falling IV strengthens reversal, rising IV strengthens continuation/breakout.'},
+  cme_oi: {l: 'CME open interest', src: 'CME QuikStrike → OI heatmap', w: 1.5,
+    inputs: [{k: 'put_strike', l: 'Heaviest Put (P) strike = buy zone'}, {k: 'put_oi', l: 'Put OI at it'}, {k: 'call_strike', l: 'Heaviest Call (C) strike = sell zone'}, {k: 'call_oi', l: 'Call OI at it'}],
+    params: [{k: 'mode', l: 'Score by', t: 'select', d: 'oi', o: [['oi', 'Bigger OI side'], ['position', 'Nearest zone to price']]}, {k: 'ratio', l: 'OI ratio to count', t: 'number', d: 1.2}],
+    help: 'P strike = buy orders, C strike = sell orders. The strike on your trade side is used to confirm the entry.'},
+  fastbull: {l: 'FastBull order book', src: 'FastBull → Order Book → Open Orders', w: 1,
+    inputs: [{k: 'sell_limit', l: 'Biggest sell-limit cluster'}, {k: 'buy_limit', l: 'Biggest buy-limit cluster'}, {k: 'sell_pct', l: 'Sell-limit % (optional)'}, {k: 'buy_pct', l: 'Buy-limit % (optional)'}],
+    params: [{k: 'score_mode', l: 'Use for', t: 'select', d: 'levels', o: [['levels', 'Entry level only'], ['contrarian', 'Entry + contrarian score']]}],
+    help: 'Sell → sell limit at the sell cluster; buy → buy limit at the buy cluster. Checked against the CME strike.'},
+  sentiment: {l: 'Retail sentiment', src: 'MyFxBook → Community outlook', w: 1,
+    inputs: [{k: 'pct_long', l: '% long'}, {k: 'pct_short', l: '% short'}],
+    params: [{k: 'threshold', l: 'Counts from (%)', t: 'number', d: 55}],
+    help: 'Always contrarian: crowd mostly long → sell, mostly short → buy.'},
+  cot: {l: 'COT commercials', src: 'Tradingster → COT legacy (gold 088691)', w: 1,
+    inputs: [{k: 'comm_long', l: 'Commercial long'}, {k: 'comm_short', l: 'Commercial short'}, {k: 'chg_long', l: 'Change in long'}, {k: 'chg_short', l: 'Change in short'}],
+    params: [{k: 'mode', l: 'Read', t: 'select', d: 'follow', o: [['follow', 'Follow commercials'], ['contrarian', 'Contrarian']]}, {k: 'min_contracts', l: 'Min net change', t: 'number', d: 1000}],
+    help: 'Net change = change in longs − change in shorts. Positive → buy (when following).'},
+  tech_summary: {l: 'Investing.com summary', src: 'Investing.com → Technical summary', w: 0.5,
+    inputs: [{k: 'm5', l: '5 min', t: 'select', o: TECH_OPTS}, {k: 'm15', l: '15 min', t: 'select', o: TECH_OPTS}, {k: 'm30', l: '30 min', t: 'select', o: TECH_OPTS},
+      {k: 'h1', l: 'Hourly', t: 'select', o: TECH_OPTS}, {k: 'd1', l: 'Daily', t: 'select', o: TECH_OPTS}, {k: 'mo1', l: 'Monthly', t: 'select', o: TECH_OPTS}],
+    params: [{k: 'mode', l: 'Read', t: 'select', d: 'contrarian', o: [['contrarian', 'Contrarian (what most do → opposite)'], ['follow', 'Follow']]}],
+    help: 'Strong = ±2, Buy/Sell = ±1, summed across the timeframes you fill in.'},
+  no_news: {l: 'No-news filter', auto: true, src: 'Forex Factory calendar', w: 1,
+    params: [{k: 'minutes_before', l: 'Mins before', t: 'number', d: 30}, {k: 'minutes_after', l: 'Mins after', t: 'number', d: 30}, {k: 'include_medium', l: 'Include medium', t: 'check', d: false}],
+    help: 'Blocks the analysis around high-impact news for the pair\'s currencies.'},
+  trend_ema: {l: 'Trend (EMA)', auto: true, src: 'OANDA candles', w: 1, params: [{k: 'period', l: 'EMA period', t: 'number', d: 50}]},
+  structure_swing: {l: 'Structure (HH/HL vs LL/LH)', auto: true, src: 'OANDA candles', w: 1, params: [], help: 'Last swing highs/lows on the rules timeframe.'},
+  near_level: {l: 'Near swing level', auto: true, src: 'OANDA candles', w: 1, params: [{k: 'within_atr', l: 'Within (× ATR)', t: 'number', d: 0.5}]},
+  rsi: {l: 'RSI', auto: true, src: 'OANDA candles', w: 1, params: [{k: 'period', l: 'Period', t: 'number', d: 14}, {k: 'oversold', l: 'Oversold', t: 'number', d: 30}, {k: 'overbought', l: 'Overbought', t: 'number', d: 70}]},
+  manual: {l: 'Manual read', src: 'Your own read', w: 1, inputs: [{k: 'signal', l: 'Signal', t: 'select', o: [['', '—'], ['buy', 'Buy'], ['neutral', 'Neutral'], ['sell', 'Sell']]}], params: []}
+};
+var PIZZOH = {
+  conds: [['trend_mtf', 2, true], ['options_chain', 2, true], ['cme_oi', 1.5, true], ['fastbull', 1, true], ['sentiment', 1, true], ['cot', 1, false], ['tech_summary', 0.5, false], ['no_news', 1, false]],
+  tf: 'H1', atr: 1.5, tp: 'prev_week', entry: 'walls', minprob: 60, align: 0.5
+};
+
+/* ---------- RULES BUILDER (More → Setup) ---------- */
+var srConds = [], srLoaded = null, condSeq = 0;
+function newCond(type, weight, required) {
+  var sp = COND[type] || {}, params = {};
+  (sp.params || []).forEach(function (p) { params[p.k] = p.d === '' ? null : p.d; });
+  return {id: 'c' + Date.now().toString(36) + (condSeq++) + Math.floor(Math.random() * 100), type: type, label: sp.l || type,
+    required: !!required, weight: weight != null ? weight : (sp.w != null ? sp.w : 1), params: params};
 }
-function renderConds() { $('#sr_conds').innerHTML = srConds.map(condRowHtml).join('') || '<div class="hint">No conditions yet — add at least one.</div>'; }
-function addCond(type) { srConds.push({id: 'c' + Date.now() + Math.floor(Math.random()*1000), type: type, params: {}, label: '', required: false, weight: 1}); renderConds(); }
+function normCond(c) {
+  var sp = COND[c.type] || {}, params = Object.assign({}, c.params || {});
+  (sp.params || []).forEach(function (p) { if (params[p.k] === undefined) params[p.k] = p.d === '' ? null : p.d; });
+  return {id: c.id || newCond(c.type).id, type: c.type, label: c.label || sp.l || c.type, required: !!c.required,
+    weight: c.weight != null && c.weight !== '' && isFinite(Number(c.weight)) ? Number(c.weight) : (sp.w != null ? sp.w : 1), params: params};
+}
+function paramField(p, val) {
+  var attrs = ' data-k="' + p.k + '" data-t="' + p.t + '"';
+  if (p.t === 'check') return '<label class="chk"><input type="checkbox" style="width:auto;margin:0 6px 0 0"' + attrs + (val ? ' checked' : '') + '>' + esc(p.l) + '</label>';
+  if (p.t === 'select') return '<label>' + esc(p.l) + '<select' + attrs + '>' + p.o.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(val) === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select></label>';
+  return '<label>' + esc(p.l) + '<input' + attrs + (p.t === 'number' ? ' type="number" step="any" inputmode="decimal"' : '') + ' value="' + esc(val == null ? '' : val) + '"></label>';
+}
+function condRowHtml(c, i) {
+  var sp = COND[c.type] || {l: c.type, params: []};
+  return '<div class="condrow" data-idx="' + i + '"><div style="flex:1;min-width:0">' +
+    '<div class="rowb"><b>' + esc(sp.l) + '</b><span class="reqtag' + (c.required ? ' on' : '') + '">' + (sp.auto ? 'Auto' : 'You enter') + '</span></div>' +
+    '<div class="mut" style="font-size:11px">' + esc(sp.src || '') + '</div>' +
+    '<div class="cf">' +
+    '<label>Label<input data-f="label" value="' + esc(c.label) + '"></label>' +
+    '<label>Weight<input data-f="weight" type="number" step="0.1" min="0" inputmode="decimal" value="' + esc(c.weight) + '"></label>' +
+    '<label class="chk"><input type="checkbox" data-f="required" style="width:auto;margin:0 6px 0 0"' + (c.required ? ' checked' : '') + '>Required</label>' +
+    (sp.params || []).map(function (p) { return paramField(p, c.params[p.k]); }).join('') + '</div>' +
+    (sp.help ? '<div class="hint">' + esc(sp.help) + '</div>' : '') +
+    '</div><button type="button" class="btn danger sm" data-rmcond="' + i + '" aria-label="Remove">✕</button></div>';
+}
+function renderConds() {
+  $('#sr_conds').innerHTML = srConds.length ? srConds.map(condRowHtml).join('') :
+    '<div class="hint">No conditions yet. Tap "Load Pizzoh preset" or add them one by one.</div>';
+}
 function syncCondsFromInputs() {
   $$('#sr_conds .condrow').forEach(function (row) {
-    var i = Number(row.dataset.idx), c = srConds[i]; if (!c) return;
-    $$('[data-k]', row).forEach(function (inp) {
-      if (inp.dataset.k === 'label') c.label = inp.value.trim();
-      else if (inp.dataset.k === '_required') c.required = !!inp.checked;
-      else if (inp.dataset.k === '_weight') c.weight = Number(inp.value) || 1;
-      else c.params[inp.dataset.k] = Number(inp.value);
+    var c = srConds[Number(row.dataset.idx)]; if (!c) return;
+    c.label = $('[data-f=label]', row).value.trim() || (COND[c.type] || {}).l || c.type;
+    var w = num($('[data-f=weight]', row).value); c.weight = w == null ? 1 : Math.max(0, w);
+    c.required = $('[data-f=required]', row).checked;
+    $$('[data-k]', row).forEach(function (el) {
+      var t = el.dataset.t, k = el.dataset.k;
+      c.params[k] = t === 'check' ? el.checked : t === 'number' ? num(el.value) : el.value.trim();
     });
   });
 }
+function srSettings(cfg) {
+  var s = (cfg && cfg.settings) || {};
+  $('#sr_tf').value = (cfg && cfg.timeframe) || 'H1';
+  $('#sr_atrmult').value = cfg && cfg.sl_atr_mult ? cfg.sl_atr_mult : 1.5;
+  $('#sr_tp').value = s.tp_mode || 'prev_week';
+  $('#sr_entry').value = s.entry_mode || 'walls';
+  $('#sr_minprob').value = Math.round((s.min_prob || 0.6) * 100);
+  $('#sr_align').value = s.align_atr != null ? s.align_atr : 0.5;
+}
 async function loadStratRules() {
   var id = $('#sr_strategy').value;
+  srLoaded = id;
   if (!id) { srConds = []; renderConds(); return; }
+  $('#sr_conds').innerHTML = '<div class="mut">Loading rules…</div>';
   try {
     var cfg = await call('getStratRules', id);
-    $('#sr_tf').value = cfg ? cfg.timeframe : 'H1';
-    $('#sr_atrmult').value = cfg ? cfg.sl_atr_mult : 1.5;
-    srConds = cfg ? cfg.conditions : [];
-  } catch (e) { srConds = []; }
+    if ($('#sr_strategy').value !== id) return;
+    AN.cache[id] = cfg ? {timeframe: cfg.timeframe, sl_atr_mult: cfg.sl_atr_mult, conditions: (cfg.conditions || []).map(normCond), settings: cfg.settings || {}} : {conditions: [], settings: {}, none: true};
+    srSettings(cfg);
+    srConds = AN.cache[id].conditions.map(function (c) { return JSON.parse(JSON.stringify(c)); });
+  } catch (e) { srConds = []; toast(e.message, true); }
   renderConds();
+}
+function loadPreset() {
+  if (srConds.length && !confirm('Replace the current conditions with the Pizzoh preset?')) return;
+  srConds = PIZZOH.conds.map(function (x) { return newCond(x[0], x[1], x[2]); });
+  $('#sr_tf').value = PIZZOH.tf; $('#sr_atrmult').value = PIZZOH.atr; $('#sr_tp').value = PIZZOH.tp;
+  $('#sr_entry').value = PIZZOH.entry; $('#sr_minprob').value = PIZZOH.minprob; $('#sr_align').value = PIZZOH.align;
+  renderConds();
+  toast('Pizzoh preset loaded. Tap Save rules to keep it.', 'info');
 }
 async function saveStratRulesBtn() {
   var id = $('#sr_strategy').value;
-  if (!id) return toast('Pick a strategy first', true);
+  if (!id) return toast('Pick a strategy first (add one above)', true);
   syncCondsFromInputs();
   if (!srConds.length) return toast('Add at least one condition', true);
+  var mp = num($('#sr_minprob').value);
+  mp = Math.min(0.99, Math.max(0.5, (mp == null ? 60 : mp) / 100));
+  var cfg = {strategy_id: id, timeframe: $('#sr_tf').value, sl_atr_mult: num($('#sr_atrmult').value) || 1.5, conditions: srConds,
+    settings: {tp_mode: $('#sr_tp').value, entry_mode: $('#sr_entry').value, min_prob: mp, align_atr: num($('#sr_align').value) || 0.5}};
+  var btn = $('#btnSaveRules'); btn.disabled = true;
   try {
-    await call('saveStratRules', {strategy_id: id, timeframe: $('#sr_tf').value, sl_atr_mult: num($('#sr_atrmult').value), conditions: srConds});
-    toast('Rules saved for ' + $('#sr_strategy').selectedOptions[0].text);
+    await call('saveStratRules', cfg);
+    toast('Rules saved for ' + stratName(id));
+    AN.cache[id] = {timeframe: cfg.timeframe, sl_atr_mult: cfg.sl_atr_mult, conditions: JSON.parse(JSON.stringify(srConds)), settings: cfg.settings};
+    if (AN.strat === id) { collectAnInputs(); AN.cfg = AN.cache[id]; AN.lastR = null; renderAnInputs(); drawAnalysis(); }
   } catch (e) { toast(e.message, true); }
+  btn.disabled = false;
 }
+
+/* ---------- STRATEGY ANALYSIS (Plan tab) ---------- */
+var AN = {cache: {}, cfg: null, strat: '', inputs: {}, lastR: null, lastSym: null, saveT: null, busy: false};
+function anKey() { return 'mt_in_' + AN.strat + '_' + $('#p_symbol').value; }
+function loadAnInputs() { try { AN.inputs = JSON.parse(localStorage.getItem(anKey()) || '{}') || {}; } catch (e) { AN.inputs = {}; } }
+function saveAnInputs() { try { localStorage.setItem(anKey(), JSON.stringify(AN.inputs)); } catch (e) { /* storage full or blocked */ } }
+
+function renderAnStrategies() {
+  var sel = $('#an_strategy');
+  var items = S.strategies.filter(function (s) { return s.status !== 'retired'; }).map(function (s) { return {v: s.strategy_id, l: s.name || s.strategy_id}; });
+  var want = AN.strat;
+  if (!want || !items.some(function (i) { return i.v === want; })) {
+    var pz = items.filter(function (i) { return /pizzoh/i.test(i.l); })[0];
+    want = pz ? pz.v : (items[0] ? items[0].v : '');
+  }
+  if (!items.length) { sel.innerHTML = '<option value="">No strategies yet</option>'; AN.strat = ''; AN.cfg = null; renderAnInputs(); return; }
+  fillSelect(sel, items, want);
+  if (sel.value !== AN.strat || !AN.cfg) loadAnCfg(sel.value);
+}
+async function loadAnCfg(id) {
+  AN.strat = id; AN.cfg = null; AN.lastR = null;
+  loadAnInputs(); renderAnInputs(); drawAnalysis();
+  if (!id) return;
+  if (!AN.cache[id]) {
+    try {
+      var cfg = await call('getStratRules', id);
+      AN.cache[id] = cfg ? {timeframe: cfg.timeframe, sl_atr_mult: cfg.sl_atr_mult, conditions: (cfg.conditions || []).map(normCond), settings: cfg.settings || {}} : {conditions: [], settings: {}, none: true};
+    } catch (e) { $('#an_inputs').innerHTML = '<div class="neg">' + esc(e.message) + '</div>'; return; }
+  }
+  if (AN.strat !== id) return;
+  AN.cfg = AN.cache[id];
+  renderAnInputs();
+}
+function anField(f, val) {
+  var v = val == null ? '' : val;
+  if (f.t === 'select') return '<label>' + esc(f.l) + '<select data-f="' + f.k + '">' + f.o.map(function (o) { return '<option value="' + esc(o[0]) + '"' + (String(v) === o[0] ? ' selected' : '') + '>' + esc(o[1]) + '</option>'; }).join('') + '</select></label>';
+  return '<label>' + esc(f.l) + '<input data-f="' + f.k + '" inputmode="decimal" autocomplete="off" value="' + esc(v) + '"' + (f.ph ? ' placeholder="' + esc(f.ph) + '"' : '') + '></label>';
+}
+function optionsBlock(c, v) {
+  var live = curPx($('#p_symbol').value);
+  var head = '<div class="cf">' +
+    anField({k: 'spot', l: 'Spot (blank = live)', ph: live != null ? live.toFixed(DEC[$('#p_symbol').value] || 2) : ''}, v.spot) +
+    anField({k: 'iv_now', l: 'IV now % (blank = ATM row)'}, v.iv_now) + anField({k: 'iv_week', l: 'IV a week ago %'}, v.iv_week) + anField({k: 'iv_month', l: 'IV a month ago %'}, v.iv_month) + '</div>';
+  var cols = [['put_delta', 'Put Δ'], ['put_price', 'Put price'], ['strike', 'Strike'], ['call_price', 'Call price'], ['call_delta', 'Call Δ'], ['iv', 'Imp vol %']];
+  var rows = v.rows && v.rows.length ? v.rows : [{}, {}, {}, {}, {}, {}, {}];
+  var tbl = '<div class="tblwrap"><table class="otbl"><thead><tr>' + cols.map(function (c2) { return '<th>' + c2[1] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+    rows.map(function (r) { return '<tr data-row>' + cols.map(function (c2) { return '<td><input data-rf="' + c2[0] + '" inputmode="decimal" autocomplete="off" value="' + esc(r[c2[0]] == null ? '' : r[c2[0]]) + '"></td>'; }).join('') + '</tr>'; }).join('') +
+    '</tbody></table></div><div class="qk"><button type="button" data-addrow="' + esc(c.id) + '">+ Add strike row</button></div>';
+  return head + tbl;
+}
+function renderAnInputs() {
+  var box = $('#an_inputs'), meta = $('#anMeta');
+  if (meta) meta.textContent = '';
+  if (!AN.strat) { box.innerHTML = '<div class="mut">Add a strategy under More → Setup, then give it rules.</div>'; return; }
+  if (!AN.cfg) { box.innerHTML = '<div class="mut">Loading rules…</div>'; return; }
+  var conds = AN.cfg.conditions || [];
+  if (!conds.length) { box.innerHTML = '<div class="hint" style="margin:0">No rules for this strategy yet. Go to More → Setup → Strategy rules and tap "Load Pizzoh preset".</div><button class="btn ghost sm" data-go="setup" style="margin-top:8px">Open Setup</button>'; return; }
+  var s = AN.cfg.settings || {};
+  if (meta) meta.textContent = (AN.cfg.timeframe || 'H1') + ' · SL ' + (AN.cfg.sl_atr_mult || 1.5) + '×ATR · TP ' + (s.tp_mode === 'swing' ? 'swing' : 'prev week') + ' · min ' + Math.round((s.min_prob || 0.6) * 100) + '%';
+  var autos = conds.filter(function (c) { return (COND[c.type] || {}).auto; });
+  var mans = conds.filter(function (c) { return !(COND[c.type] || {}).auto; });
+  var html = autos.length ? '<div class="hint" style="margin:0">Checked automatically</div><div class="autolist">' + autos.map(function (c) { return '<span>' + esc(c.label) + (c.required ? ' ·req' : '') + '</span>'; }).join('') + '</div>' : '';
+  html += mans.map(function (c) {
+    var sp = COND[c.type] || {inputs: []}, v = AN.inputs[c.id] || {};
+    return '<div class="inbox' + (c.required ? ' req' : '') + '" data-cid="' + esc(c.id) + '"><div class="rowb"><div><b>' + esc(c.label) + '</b><div class="src">' + esc(sp.src || '') + '</div></div>' +
+      '<span class="reqtag' + (c.required ? ' on' : '') + '">' + (c.required ? 'Required' : 'Optional') + '</span></div>' +
+      (sp.custom === 'options' ? optionsBlock(c, v) : '<div class="cf">' + (sp.inputs || []).map(function (f) { return anField(f, v[f.k]); }).join('') + '</div>') + '</div>';
+  }).join('');
+  html += '<div class="rowb" style="align-items:center"><span class="hint" style="margin:0">Inputs are kept on this device per strategy and pair.</span><button type="button" class="btn ghost sm" id="btnAnClear">Clear inputs</button></div>';
+  box.innerHTML = html;
+}
+function collectAnInputs() {
+  if (!AN.cfg || !AN.strat) return;
+  $$('#an_inputs [data-cid]').forEach(function (b) {
+    var o = {};
+    $$('[data-f]', b).forEach(function (el) { var v = el.value.trim(); if (v !== '') o[el.dataset.f] = v; });
+    var trs = $$('tr[data-row]', b);
+    if (trs.length) o.rows = trs.map(function (tr) { var r = {}; $$('[data-rf]', tr).forEach(function (el) { var v = el.value.trim(); if (v !== '') r[el.dataset.rf] = v; }); return r; });
+    AN.inputs[b.dataset.cid] = o;
+  });
+  saveAnInputs();
+}
+async function runAnalysis() {
+  if (!AN.strat) return toast('Pick a strategy first', true);
+  if (!AN.cfg || !(AN.cfg.conditions || []).length) return toast('This strategy has no rules yet (More → Setup)', true);
+  if (AN.busy) return;
+  collectAnInputs();
+  var sym = $('#p_symbol').value, btn = $('#btnAnalyze');
+  AN.busy = true; btn.disabled = true; btn.textContent = 'Analyzing…';
+  $('#analysisBox').innerHTML = '<div class="mut">Pulling OANDA candles and scoring ' + esc(sym) + '…</div>';
+  try {
+    var r = await call('analyzeStrategy', sym, AN.strat, AN.inputs);
+    if (sym !== $('#p_symbol').value) return;
+    AN.lastR = r; AN.lastSym = sym; drawAnalysis();
+  } catch (e) { $('#analysisBox').innerHTML = '<div class="neg">' + esc(e.message) + '</div>'; }
+  finally { AN.busy = false; btn.disabled = false; btn.textContent = 'Analyze'; }
+}
+function anSizing(r) {
+  var accId = $('#p_account').value, a = acct(accId), s = statusOf(accId);
+  var bal = s && s.current_balance != null ? s.current_balance : (a ? Number(a.starting_balance) : null);
+  var rp = num($('#an_risk').value) || 1, pl = perLot(r.symbol, r.entry), dist = Math.abs(r.entry - r.sl);
+  if (!bal || !pl || !dist) return {lots: 0.01, loss: 0.01 * (pl || 0) * dist, profit: 0.01 * (perLot(r.symbol, r.tp) || 0) * Math.abs(r.tp - r.entry), bal: bal, rp: rp, noAcc: !bal};
+  var lots = Math.max(0.01, Math.floor(bal * rp / 100 / (pl * dist) * 100) / 100);
+  return {lots: lots, loss: +(lots * pl * dist).toFixed(2), profit: +(lots * perLot(r.symbol, r.tp) * Math.abs(r.tp - r.entry)).toFixed(2), bal: bal, rp: rp,
+    over: lots === 0.01 && 0.01 * pl * dist > bal * rp / 100};
+}
+function sigTag(sig) {
+  var map = {buy: ['buy', 'BUY'], sell: ['sell', 'SELL'], neutral: ['neutral', 'NEUTRAL'], info: ['neutral', 'LEVELS'], pass: ['neutral', 'CLEAR'], block: ['sell', 'BLOCK'], missing: ['neutral', 'MISSING']};
+  var m = map[sig] || ['neutral', String(sig || '—').toUpperCase()];
+  return '<span class="sigtag ' + m[0] + '"' + (sig === 'missing' ? ' style="color:var(--amber)"' : '') + '>' + m[1] + '</span>';
+}
+function drawAnalysis() {
+  var box = $('#analysisBox'), r = AN.lastR;
+  if (!r || AN.lastSym !== $('#p_symbol').value) { box.innerHTML = '<div class="mut">Fill in the inputs for this pair, then tap Analyze.</div>'; return; }
+  var d = DEC[r.symbol] || 2, f = function (v) { return v == null ? '—' : Number(v).toFixed(d); };
+  var dir = r.bias === 'buy' || r.bias === 'sell';
+  var bp = r.buy_prob == null ? 0.5 : r.buy_prob, spb = 1 - bp;
+  var html = '<div class="rowb" style="align-items:center"><div><div class="mut" style="font-size:12px">' + esc(stratName(r.strategy_id)) + ' · ' + esc(r.symbol) + ' · live ' + f(r.live) + '</div>' +
+    '<div class="mut" style="font-size:12px">Main trend <b>' + esc(r.trend || '—') + '</b> · short-term <b>' + esc(r.short_trend || '—') + '</b>' + (r.regime ? ' · options regime <b>' + esc(r.regime) + '</b>' : '') + '</div></div>' +
+    '<span class="sigtag big ' + (dir ? r.bias : 'neutral') + '">' + (r.blocked ? 'BLOCKED' : r.missing && r.missing.length ? 'INCOMPLETE' : r.bias.toUpperCase()) + (r.confidence != null ? ' · ' + Math.round(r.confidence * 100) + '%' : '') + '</span></div>';
+  if (r.buy_prob != null) {
+    html += '<div class="probhead"><span class="pos">Buy ' + Math.round(bp * 100) + '%</span><span class="neg">Sell ' + Math.round(spb * 100) + '%</span></div>' +
+      '<div class="probbar"><i style="width:' + (bp * 100) + '%;background:var(--green)"></i><i style="width:' + (spb * 100) + '%;background:var(--red)"></i></div>' +
+      '<div class="hint">A side needs ' + Math.round((r.min_prob || 0.6) * 100) + '% to become a trade. Neutral conditions count half to each side.</div>';
+  }
+  if (r.blocked) html += '<span class="chipwarn bad">Blocked by: ' + esc(r.blocked) + '</span>';
+  if (r.missing && r.missing.length) html += r.missing.map(function (m) { return '<span class="chipwarn bad">Missing required: ' + esc(m) + '</span>'; }).join('');
+  if (!dir && !r.blocked && !(r.missing && r.missing.length)) html += '<span class="chipwarn">No side reached ' + Math.round((r.min_prob || 0.6) * 100) + '%, stand aside</span>';
+  if (dir) {
+    var z = anSizing(r);
+    var kv = function (k, v, c, src) { return '<div><div class="k">' + k + '</div><div class="v ' + (c || '') + '">' + v + '</div>' + (src ? '<div class="src">' + esc(src) + '</div>' : '') + '</div>'; };
+    html += '<div class="kv" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">' +
+      kv('Order', esc(r.order_type), r.bias === 'buy' ? 'pos' : 'neg') +
+      kv('Entry', f(r.entry), '', r.entry_source + (r.aligned === true ? ' ✓' : '')) +
+      kv('Stop loss', f(r.sl), 'neg', r.sl_atr_mult + ' × ATR (' + fx(r.atr, d) + ')') +
+      kv('Take profit', f(r.tp), 'pos', r.tp_source) +
+      kv('Risk : reward', '1 : ' + fx(r.rr)) +
+      kv('Previous week', r.prev_week ? 'H ' + f(r.prev_week.high) + ' · L ' + f(r.prev_week.low) : '—') +
+      kv('Lots', z.lots.toFixed(2), '', z.noAcc ? 'pick an account below to size' : fx(z.rp, 1) + '% of ' + money(z.bal, 0)) +
+      kv('If TP / if SL', '<span class="pos">+' + money(z.profit) + '</span> / <span class="neg">-' + money(z.loss) + '</span>') + '</div>';
+    if (z.over) html += '<span class="chipwarn bad">Even 0.01 lots risks more than ' + fx(z.rp, 1) + '% here</span>';
+    html += (r.warnings || []).map(function (w) { return '<span class="chipwarn">' + esc(w) + '</span>'; }).join('');
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">' +
+      '<button type="button" class="btn ' + r.bias + '" style="flex:2;min-width:200px" data-ansave>Save as pending (' + esc(r.order_type) + ')</button>' +
+      '<button type="button" class="btn ghost" style="flex:1;min-width:150px" data-anload>Load into trade form</button></div>';
+  }
+  html += '<div class="tblwrap" style="margin-top:12px"><table class="condtbl"><thead><tr><th>Condition</th><th>Weight</th><th>Signal</th></tr></thead><tbody>' +
+    (r.conditions || []).map(function (c) {
+      return '<tr><td><b>' + esc(c.label) + '</b> ' + (c.required ? '<span class="reqtag on">req</span>' : '') + '<div class="dt">' + esc(c.detail || '') + '</div></td><td>' + fx(c.weight, 2) + '</td><td>' + sigTag(c.signal) + '</td></tr>';
+    }).join('') + '</tbody></table></div>';
+  box.innerHTML = html;
+}
+function anSummary(r) {
+  return stratName(r.strategy_id) + ': ' + r.bias.toUpperCase() + ' ' + Math.round((r.confidence || 0) * 100) + '% (buy ' + Math.round(r.buy_prob * 100) + '% / sell ' + Math.round(r.sell_prob * 100) + '%)' +
+    (r.regime ? ', options ' + r.regime : '') + '. ' + r.order_type + ' at ' + r.entry_source + '; TP ' + r.tp_source + '; SL ' + r.sl_atr_mult + '×ATR.' +
+    ((r.warnings || []).length ? ' Notes: ' + r.warnings.join('; ') : '');
+}
+async function anSave() {
+  var r = AN.lastR; if (!r || !(r.bias === 'buy' || r.bias === 'sell')) return;
+  var acc = $('#p_account').value;
+  if (!acc) { $('#setupCard').scrollIntoView({behavior: 'smooth'}); return toast('Pick an account in Trade setup first', true); }
+  var z = anSizing(r), d = DEC[r.symbol] || 2, rd = function (v) { return +Number(v).toFixed(d); };
+  if (!confirm(r.order_type + ' ' + r.symbol + ' ' + z.lots.toFixed(2) + ' lots\nEntry ' + rd(r.entry) + ' · SL ' + rd(r.sl) + ' · TP ' + rd(r.tp) + '\nRisk ' + money(z.loss) + ' · target ' + money(z.profit) + '\n\nSave to ' + ((acct(acc) || {}).name || acc) + ' as pending?')) return;
+  var btn = $('[data-ansave]'); if (btn) btn.disabled = true;
+  try {
+    await call('savePlan', {
+      account_id: acc, strategy_id: r.strategy_id, symbol: r.symbol, direction: r.bias, lots: z.lots, planned_at: new Date().toISOString(),
+      entry_price: rd(r.entry), stop_price: rd(r.sl), target_price: rd(r.tp),
+      risk_amount: z.loss, exp_profit: z.profit, exp_loss: z.loss, setup_tag: stratName(r.strategy_id), notes: anSummary(r)
+    });
+    toast(r.order_type + ' saved as pending');
+    PLAN.busy = false; await loadPlans(false);
+    $('#planList').scrollIntoView({behavior: 'smooth', block: 'start'});
+  } catch (e) { toast(e.message, true); }
+  if (btn) btn.disabled = false;
+}
+function anLoad() {
+  var r = AN.lastR; if (!r || !(r.bias === 'buy' || r.bias === 'sell')) return;
+  var d = DEC[r.symbol] || 2, z = anSizing(r);
+  pSetDir(r.bias);
+  $('#p_entry').value = Number(r.entry).toFixed(d); $('#p_sl').value = Number(r.sl).toFixed(d); $('#p_tp').value = Number(r.tp).toFixed(d);
+  $('#p_lots').value = z.lots.toFixed(2); $('#p_strategy').value = r.strategy_id; $('#p_setup').value = stratName(r.strategy_id);
+  $('#p_notes').value = anSummary(r);
+  planCalc();
+  $('#setupCard').scrollIntoView({behavior: 'smooth', block: 'start'});
+  toast('Loaded into the trade form. Adjust and save.', 'info');
+}
+
 function bindStratRules() {
   document.addEventListener('click', function (e) {
-    var a = e.target.closest('[data-addcond]'); if (a) return addCond(a.dataset.addcond);
-    var r = e.target.closest('[data-rmcond]'); if (r) { syncCondsFromInputs(); srConds.splice(Number(r.dataset.rmcond),1); renderConds(); return; }
-    var m = e.target.closest('[data-manual] button');
-    if (m) {
-      var seg = m.closest('[data-manual]'), parts = seg.dataset.manual.split('|');
-      manualAnswers[parts[0]] = manualAnswers[parts[0]] || {};
-      manualAnswers[parts[0]][parts[1]] = m.dataset.v;
-      runAnalysis();
+    var t;
+    if ((t = e.target.closest('[data-addcond]'))) { syncCondsFromInputs(); srConds.push(newCond(t.dataset.addcond)); renderConds(); return; }
+    if ((t = e.target.closest('[data-rmcond]'))) { syncCondsFromInputs(); srConds.splice(Number(t.dataset.rmcond), 1); renderConds(); return; }
+    if (e.target.closest('#btnPreset')) { syncCondsFromInputs(); return loadPreset(); }
+    if ((t = e.target.closest('[data-addrow]'))) {
+      collectAnInputs();
+      var o = AN.inputs[t.dataset.addrow] = AN.inputs[t.dataset.addrow] || {};
+      o.rows = (o.rows && o.rows.length ? o.rows : [{}, {}, {}, {}, {}, {}, {}]).concat([{}]);
+      saveAnInputs(); renderAnInputs(); return;
     }
-    var sp = e.target.closest('[data-saveplan]'); if (sp) return saveSuggestedPlan(JSON.parse(sp.dataset.saveplan));
+    if (e.target.closest('[data-ansave]')) return anSave();
+    if (e.target.closest('[data-anload]')) return anLoad();
+    if (e.target.closest('#btnAnClear')) {
+      if (!confirm('Clear all inputs for this strategy and pair?')) return;
+      AN.inputs = {}; try { localStorage.removeItem(anKey()); } catch (x) { /* ignore */ }
+      AN.lastR = null; renderAnInputs(); drawAnalysis(); return;
+    }
   });
   $('#sr_strategy').addEventListener('change', loadStratRules);
   $('#btnSaveRules').addEventListener('click', saveStratRulesBtn);
   $('#btnAnalyze').addEventListener('click', runAnalysis);
+  $('#an_strategy').addEventListener('change', function (e) { collectAnInputs(); loadAnCfg(e.target.value); });
+  $('#an_pairs').addEventListener('click', function (e) { var b = e.target.closest('button[data-sym]'); if (b) pSetSym(b.dataset.sym); });
+  $('#an_inputs').addEventListener('input', function () { clearTimeout(AN.saveT); AN.saveT = setTimeout(collectAnInputs, 400); });
+  $('#an_risk').addEventListener('input', function () { if (AN.lastR) drawAnalysis(); });
+  $('#p_account').addEventListener('change', function () { if (AN.lastR) drawAnalysis(); });
 }
 
-/* ---------- STRATEGY ANALYSIS ---------- */
-var manualAnswers = {};
-
-// field specs for data-entry condition types (rendered as inputs, not buy/neutral/sell buttons)
-var DATA_FIELDS = {
-  sentiment_contrarian: [
-    {k: 'pct_long', label: '% Long', step: 'any'},
-    {k: 'pct_short', label: '% Short', step: 'any'}
-  ],
-  options_chain: [
-    {k: 'spot', label: 'Spot / strike', step: 'any'},
-    {k: 'call_price', label: 'Call price', step: 'any'},
-    {k: 'call_delta', label: 'Call Delta', step: '0.01'},
-    {k: 'put_price', label: 'Put price', step: 'any'},
-    {k: 'put_delta', label: 'Put Delta', step: '0.01'},
-    {k: 'iv_current', label: 'IV now %', step: 'any'},
-    {k: 'iv_previous', label: 'IV previous %', step: 'any'}
-  ],
-  cme_oi: [
-    {k: 'put_level', label: 'Heaviest Put price', step: 'any'},
-    {k: 'call_level', label: 'Heaviest Call price', step: 'any'}
-  ],
-  fastbull_walls: [
-    {k: 'buy_wall', label: 'Buy-wall price', step: 'any'},
-    {k: 'sell_wall', label: 'Sell-wall price', step: 'any'}
-  ],
-  cot_commercial: [
-    {k: 'net_position', label: 'Commercial net (long +, short -)', step: 'any'}
-  ]
-};
-
-function manualFieldHtml(stratId, condId, field, cur) {
-  var v = cur && cur[field.k] != null ? cur[field.k] : '';
-  return '<label>' + esc(field.label) + '<input type="number" step="' + field.step + '" data-manualfield="' + stratId + '|' + condId + '|' + field.k + '" value="' + esc(v) + '"></label>';
-}
-
-async function runAnalysis() {
-  var sym = $('#p_symbol').value;
-  $('#analysisBox').innerHTML = '<div class="mut">Checking…</div>';
-  try { drawAnalysis(await call('analyzeAllStrategies', sym, manualAnswers), sym); }
-  catch (e) { $('#analysisBox').innerHTML = '<div class="neg">' + esc(e.message) + '</div>'; }
-}
-function drawAnalysis(res, sym) {
-  if (!res.length) { $('#analysisBox').innerHTML = '<div class="mut">No strategies have rules yet. Add them under More → Setup.</div>'; $('#analysisManual').innerHTML = ''; return; }
-  var manualBlocks = [], dataBlocks = [];
-  res.forEach(function (r) {
-    (r.conditions||[]).forEach(function (c) {
-      if (c.type === 'manual') manualBlocks.push({strategy_id: r.strategy_id, stratName: r.name, cond_id: c.id, label: c.label || 'Manual input'});
-      else if (DATA_FIELDS[c.type]) dataBlocks.push({strategy_id: r.strategy_id, stratName: r.name, cond_id: c.id, type: c.type, label: c.label || CONDLABEL[c.type]});
-    });
-  });
-  var manualHtml = manualBlocks.length ? manualBlocks.map(function (m) {
-    var cur = (manualAnswers[m.strategy_id]||{})[m.cond_id] || 'neutral';
-    return '<div class="list-row"><span>' + esc(m.stratName) + ': ' + esc(m.label) + '</span><div class="seg" style="width:auto;margin:0" data-manual="' + m.strategy_id + '|' + m.cond_id + '">' +
-      ['buy','neutral','sell'].map(function (v) { return '<button type="button" data-v="'+v+'" class="'+(cur===v?'on':'')+'" style="padding:6px 10px">'+v+'</button>'; }).join('') + '</div></div>';
-  }).join('') : '';
-  var dataHtml = dataBlocks.length ? dataBlocks.map(function (m) {
-    var cur = (manualAnswers[m.strategy_id]||{})[m.cond_id] || {};
-    var fields = DATA_FIELDS[m.type].map(function (f) { return manualFieldHtml(m.strategy_id, m.cond_id, f, cur); }).join('');
-    return '<div class="condrow"><div style="flex:1"><b>' + esc(m.stratName) + ': ' + esc(m.label) + '</b><div class="cf">' + fields + '</div></div></div>';
-  }).join('') : '';
-  $('#analysisManual').innerHTML = (manualHtml || dataHtml) ? '<div class="hint" style="margin-bottom:6px">Fill these in, then tap Analyze:</div>' + dataHtml + manualHtml : '';
-  var buyN = res.filter(function (r) { return r.bias === 'buy'; }).length, sellN = res.filter(function (r) { return r.bias === 'sell'; }).length;
-  var d = DEC[sym] || 2;
-  var summary = '<div class="pcard"><b>Combined: ' + buyN + ' buy, ' + sellN + ' sell, ' + (res.length - buyN - sellN) + ' neutral</b></div>';
-  $('#analysisBox').innerHTML = summary + res.map(function (r) {
-    if (r.error) return '<div class="stratcard"><b>' + esc(r.name) + '</b> <span class="neg">' + esc(r.error) + '</span></div>';
-    var tag = r.bias === 'buy' ? 'buy' : r.bias === 'sell' ? 'sell' : 'neutral';
-    var saveBtn = (r.bias !== 'neutral' && !r.blocked) ? '<button class="btn sm" style="margin-top:8px" data-saveplan=\'' + esc(JSON.stringify({sym: sym, strategy_id: r.strategy_id, dir: r.bias, entry: r.entry, sl: r.sl, tp: r.tp})) + '\'>Save as pending (' + r.bias + ' limit)</button>' : '';
-    return '<div class="stratcard"><div class="rowb"><b>' + esc(r.name) + '</b><span class="sigtag ' + tag + '">' + r.bias.toUpperCase() + (r.confidence != null ? ' · ' + Math.round(r.confidence*100) + '%' : '') + '</span></div>' +
-      (r.blocked ? '<div class="hint amb">Blocked by: ' + esc(r.blocked) + '</div>' : '') +
-      (r.bias !== 'neutral' ? '<div class="kv"><div><div class="k">Entry</div><div class="v">' + r.entry.toFixed(d) + '</div></div><div><div class="k">SL</div><div class="v neg">' + r.sl.toFixed(d) + '</div></div><div><div class="k">TP</div><div class="v pos">' + (r.tp!=null?r.tp.toFixed(d):'—') + '</div></div><div><div class="k">TP basis</div><div class="v" style="font-size:12px">' + (r.tp_fallback?'2R fallback':esc(r.tp_source||'—')) + '</div></div></div>' : '') +
-      '<div class="hint">' + r.conditions.map(function (c) { return esc(c.label) + ': ' + c.signal; }).join(' · ') + '</div>' + saveBtn + '</div>';
-  }).join('');
-  bindDataFieldInputs();
-}
-function bindDataFieldInputs() {
-  $$('[data-manualfield]').forEach(function (inp) {
-    inp.addEventListener('change', function () {
-      var parts = inp.dataset.manualfield.split('|'), stratId = parts[0], condId = parts[1], key = parts[2];
-      manualAnswers[stratId] = manualAnswers[stratId] || {};
-      manualAnswers[stratId][condId] = manualAnswers[stratId][condId] || {};
-      manualAnswers[stratId][condId][key] = num(inp.value);
-    });
-  });
-}
-async function saveSuggestedPlan(d) {
-  var acc = $('#p_account').value;
-  if (!acc) return toast('Pick an account in the Plan tab first', true);
-  var lots = num($('#p_lots').value) || 0.01;
-  try {
-    await call('savePlan', {
-      account_id: acc, strategy_id: d.strategy_id, symbol: d.sym, direction: d.dir, lots: lots,
-      entry_price: d.entry, stop_price: d.sl, target_price: d.tp, planned_at: new Date().toISOString()
-    });
-    toast('Saved as pending ' + d.dir + ' limit on ' + d.sym);
-    loadPlans(false);
-  } catch (e) { toast(e.message, true); }
-}
 /* ---------- PLAN + NEWS ---------- */
-var PLAN = {plans: [], prices: null, priceErr: '', err: '', news: null, newsAt: 0, day: 'today', imp: 'All', cur: 'ALL', dir: 'buy', timeTouched: false, busy: false, fx: null, fxAt: 0};
+var PLAN = {plans: [], prices: null, priceErr: '', err: '', news: null, newsAt: 0, day: 'today', imp: 'All', cur: 'ALL', dir: 'buy', timeTouched: false, busy: false, fx: null, fxAt: 0, liveAt: 0};
 var DEC = {XAUUSD: 2, EURUSD: 5, GBPUSD: 5, USDJPY: 3, DXY: 3};
 var SYM_CUR = {XAUUSD: ['USD'], EURUSD: ['EUR', 'USD'], GBPUSD: ['GBP', 'USD'], USDJPY: ['USD', 'JPY'], DXY: ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'CHF']};
 var MINE = ['USD', 'EUR', 'GBP', 'JPY'];
@@ -1529,9 +1757,13 @@ function pairsFor(c) { return Object.keys(SYM_CUR).filter(function (s) { return 
 
 function pSetDir(v) { PLAN.dir = v; $$('#p_dir button').forEach(function (b) { b.classList.toggle('on', b.dataset.v === v); }); planCalc(); }
 function pSetSym(s) {
+  if (s === $('#p_symbol').value) return;
+  collectAnInputs();
   $('#p_symbol').value = s;
-  $$('#p_pairs button').forEach(function (b) { b.classList.toggle('on', b.dataset.sym === s); });
+  $$('#p_pairs button, #an_pairs button').forEach(function (b) { b.classList.toggle('on', b.dataset.sym === s); });
   ['p_entry', 'p_sl', 'p_tp'].forEach(function (id) { $('#' + id).value = ''; });
+  if (AN.strat) loadAnInputs();
+  AN.lastR = null; renderAnInputs(); drawAnalysis();
   planCalc();
 }
 function curPx(sym) { var q = PLAN.prices && PLAN.prices.prices[sym]; return q ? q.mid : null; }
@@ -1617,6 +1849,7 @@ async function loadPlans(runCheck) {
     if (needFx && res[2] && res[2].status === 'fulfilled') { PLAN.fx = res[2].value; PLAN.fxAt = Date.now(); }
     drawTicker(); drawPlans(); planCalc(); drawAccMenu();
     if (S.tab === 'home') drawOverview();
+    if (S.tab === 'stats') renderStratCards(tradesFor());
   } finally { PLAN.busy = false; }
 }
 
@@ -1641,10 +1874,12 @@ function drawPlans() {
     var bar = prog == null ? '' : '<div class="bar" style="margin-top:8px"><div class="track"><div class="fill" style="width:' + Math.max(0, Math.min(100, prog * 100)) + '%;background:' + (prog >= 0.5 ? 'var(--green)' : 'var(--red)') + '"></div></div>' +
       '<div class="lbl" style="margin:4px 0 0"><span>SL ' + p.stop_price + '</span><span>' + cur.toFixed(DEC[p.symbol]) + '</span><span>TP ' + p.target_price + '</span></div></div>';
     var fl = p.status === 'open' && cur != null ? (buy ? 1 : -1) * (cur - p.entry_price) * p.lots * perLot(p.symbol, cur) : null;
+    var kind = p.status === 'pending' && cur != null ? (buy ? (p.entry_price < cur ? 'Buy limit' : 'Buy stop') : (p.entry_price > cur ? 'Sell limit' : 'Sell stop')) + ' · ' : '';
     return '<div class="pcard"><div class="rowb"><div><b>' + esc(p.symbol) + '</b> <span class="badge ' + esc(p.direction) + '">' + esc(p.direction) + '</span> <span class="badge ' + esc(p.status) + '">' + esc(p.status) + '</span>' +
-      '<div class="mut" style="margin-top:2px">' + fx(p.lots) + ' lots · entry ' + p.entry_price + ' · ' + esc(stratName(p.strategy_id)) + '</div></div>' +
+      '<div class="mut" style="margin-top:2px">' + kind + fx(p.lots) + ' lots · entry ' + p.entry_price + ' · ' + esc(stratName(p.strategy_id)) + '</div></div>' +
       '<div style="text-align:right"><div class="pos">+' + money(p.exp_profit) + '</div><div class="neg">-' + money(p.exp_loss) + '</div></div></div>' + bar +
       '<div class="hint">' + (p.status === 'pending' ? 'Waiting for price to reach entry' : 'Floating ' + dualMoney(fl)) + '</div>' +
+      (p.notes ? '<div class="hint" style="margin-top:4px">' + esc(p.notes) + '</div>' : '') +
       '<div style="margin-top:8px"><button class="btn ghost sm" data-cancelplan="' + esc(p.plan_id) + '">Cancel</button></div></div>';
   }).join('');
 }
@@ -1693,6 +1928,7 @@ function renderPlan() {
   fillSelect($('#p_strategy'), [{v: '', l: '— none —'}].concat(S.strategies.map(function (s) { return {v: s.strategy_id, l: s.name || s.strategy_id}; })), null);
   if (!PLAN.timeTouched) $('#p_time').value = nowLocalInput();
   if (!PLAN.news) call('getNews').then(function (v) { PLAN.news = v; PLAN.newsAt = Date.now(); planCalc(); }).catch(function () {});
+  renderAnStrategies();
   planCalc(); loadPlans(true);
 }
 
@@ -1762,7 +1998,8 @@ function bindPlan() {
     if ((t = e.target.closest('[data-pair]'))) return openPair(t.dataset.pair);
     if ((t = e.target.closest('[data-planpair]'))) { closeModal(); pSetSym(t.dataset.planpair); window.scrollTo(0, 0); }
   });
-setInterval(function () { if ((S.tab === 'plan' || S.tab === 'home') && document.visibilityState === 'visible' && S.loaded) loadPlans(true); }, 45000);}
+  setInterval(function () { if ((S.tab === 'plan' || S.tab === 'home') && document.visibilityState === 'visible' && S.loaded) loadPlans(true); }, 45000);
+}
 
 /* ---------- loading & routing ---------- */
 function showBanner(msg) { var b = $('#banner'); b.hidden = !msg; b.textContent = msg ? 'Some data failed to load: ' + msg : ''; }
@@ -1870,14 +2107,17 @@ function bind() {
   setInterval(function () { if (document.visibilityState === 'visible' && S.loaded && $('#modal').hidden) refreshData(false); }, 300000);
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && S.loaded && Date.now() - S.lastLoad > 300000) refreshData(false); });
 }
+var started = false;
 function startApp() {
+  if (started) { loadAll(); return; }
+  started = true;
   setChartDefaults(); bind(); bindPlan(); bindAccMenu(); bindStratRules(); resetLog(); showTab('home'); loadAll();
 }
 $('#li_submit').addEventListener('click', doLogin);
 $('#li_pass').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
 $('#li_user').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('#li_pass').focus(); });
 if (localStorage.getItem('mt_session')) { hideLogin(); startApp(); } else { showLogin(); }
-window.__app = {S: S, showTab: showTab, calcStats: calcStats, openTrade: openTrade, riskFor: riskFor, pnlFor: pnlFor, calcUpdate: calcUpdate};
+window.__app = {S: S, AN: AN, PLAN: PLAN, showTab: showTab, calcStats: calcStats, openTrade: openTrade, riskFor: riskFor, pnlFor: pnlFor, calcUpdate: calcUpdate};
 })();
 </script>
 </body>
