@@ -2354,17 +2354,12 @@ function setUpdated() { $('#updated').textContent = 'Updated ' + new Date().toLo
 
 async function loadAll() {
   $('#updated').textContent = 'Loading…';
-  var names = ['getInit', 'getStatus', 'getTrades', 'getTasks', 'getBacktests'];
-  var res = await Promise.allSettled(names.map(function (n) { return call(n); }));
-  var errs = [];
-  res.forEach(function (r, i) { if (r.status === 'rejected') errs.push(names[i] + ': ' + r.reason.message); });
-  var val = function (i) { return res[i].status === 'fulfilled' ? res[i].value : null; };
-  if (val(0)) { S.accounts = val(0).accounts; S.strategies = val(0).strategies; }
-  if (val(1)) S.status = val(1);
-  if (val(2)) S.trades = val(2);
-  if (val(3)) S.tasks = val(3);
-  if (val(4)) S.backtests = val(4);
-  showBanner(errs.join(' | '));
+  try {
+    var d = await call('getBootstrap');
+    S.accounts = d.accounts; S.strategies = d.strategies; S.status = d.status;
+    S.trades = d.trades; S.tasks = d.tasks; S.backtests = d.backtests;
+    showBanner('');
+  } catch (e) { showBanner(e.message); }
   if (!S.loaded) {
     S.loaded = true;
     var first = S.accounts.find(function (a) { return a.status === 'active'; });
@@ -2374,12 +2369,10 @@ async function loadAll() {
   renderFilters(); populateSelects(); renderTab(S.tab);
 }
 async function refreshData(withInit) {
-  var jobs = [call('getStatus'), call('getTrades'), call('getTasks')];
-  if (withInit) jobs.push(call('getInit'));
   try {
-    var r = await Promise.all(jobs);
-    S.status = r[0]; S.trades = r[1]; S.tasks = r[2];
-    if (withInit) { S.accounts = r[3].accounts; S.strategies = r[3].strategies; }
+    var d = await call('getBootstrap');
+    S.accounts = d.accounts; S.strategies = d.strategies; S.status = d.status;
+    S.trades = d.trades; S.tasks = d.tasks; S.backtests = d.backtests;
     showBanner(''); S.lastLoad = Date.now(); setUpdated();
     renderFilters(); populateSelects(); renderTab(S.tab);
   } catch (e) { showBanner(e.message); }
