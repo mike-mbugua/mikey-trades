@@ -702,7 +702,7 @@ function duration(a, b) {
   return Math.floor(m / 1440) + 'd ' + Math.floor((m % 1440) / 60) + 'h';
 }
 
-var API_URL = 'https://script.google.com/macros/s/AKfycbyCYMqcLb76VpbpH5v1Jc8KGW9PBBbG11lg1ICARIbYSLeh0mL-w2JWmZxWF43hW1XT/exec';
+var API_URL = '/api/pizzoh';
 function showLogin(msg) { $('#loginScreen').hidden = false; $('#li_err').textContent = msg || ''; $('#li_pass').value = ''; $('#li_user').focus(); }
 function hideLogin() { $('#loginScreen').hidden = true; }
 function logout() { localStorage.removeItem('mt_session'); showLogin(''); }
