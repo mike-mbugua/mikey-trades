@@ -312,6 +312,7 @@ details.cl[open] summary{margin-bottom:8px}
   <nav class="navlinks" id="nav">
     <button data-tab="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg>Home</button>
     <button data-tab="plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Plan</button>
+    <button data-tab="analysis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"/><path d="M4 19h16"/><path d="m7 15 3-4 3 2 5-7"/></svg>Strategy Analysis</button>
     <button data-tab="news"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h13v14H6a2 2 0 0 1-2-2Z"/><path d="M17 9h3v8a2 2 0 0 1-2 2M8 9h6M8 13h6"/></svg>News</button>
     <button data-tab="trades"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h13a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3Z"/><path d="M4 4v13a3 3 0 0 0 3 3"/></svg>Trades</button>
     <button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Log</button>
@@ -458,6 +459,92 @@ details.cl[open] summary{margin-bottom:8px}
       </div>
       <div class="card"><div class="rowb"><h3>Pending and open</h3><button class="btn ghost sm" id="btnCheck">Check now</button></div><div id="planList"></div></div>
     </section>
+
+    <!-- STRATEGY ANALYSIS -->
+<section class="tab" id="tab-analysis" hidden>
+
+  <div class="card">
+    <div class="rowb">
+      <div>
+        <h3>Strategy Analysis</h3>
+        <div class="mut">
+          Run a fresh multi-source analysis when you need it.
+        </div>
+      </div>
+
+      <button class="btn" id="btnTechnicalAnalysis">
+        Analyze Now
+      </button>
+    </div>
+  </div>
+
+  <!-- Analysis controls -->
+  <div class="card">
+
+    <div class="form">
+
+      <label>
+        Strategy
+        <select id="analysis_strategy"></select>
+      </label>
+
+      <label>
+        Symbol
+        <select id="analysis_symbol">
+          <option value="XAUUSD">XAUUSD</option>
+          <option value="GBPUSD">GBPUSD</option>
+          <option value="USDJPY">USDJPY</option>
+          <option value="EURUSD">EURUSD</option>
+          <option value="DXY">DXY</option>
+        </select>
+      </label>
+
+    </div>
+
+  </div>
+
+  <!-- Overall result -->
+  <div class="card" id="technicalAnalysisSummary">
+
+    <div class="mut">
+      Select a strategy and click <b>Analyze Now</b>.
+    </div>
+
+  </div>
+
+  <!-- Timeframe analysis -->
+  <div class="card">
+
+    <div class="rowb">
+      <h3>Technical Timeframes</h3>
+      <span class="mut">TickAtlas</span>
+    </div>
+
+    <div id="technicalTimeframes">
+      <div class="mut">
+        No analysis run yet.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Detailed signals -->
+  <div class="card">
+
+    <div class="rowb">
+      <h3>Technical Signals</h3>
+      <span class="mut">Indicator breakdown</span>
+    </div>
+
+    <div id="technicalSignals">
+      <div class="mut">
+        No analysis run yet.
+      </div>
+    </div>
+
+  </div>
+
+</section>
 
     <!-- NEWS -->
     <section class="tab" id="tab-news" hidden>
@@ -1921,6 +2008,43 @@ function openPair(sym) {
       '<div class="rowb" style="margin-top:8px"><span class="' + cls(chg) + '"><b>' + (chg > 0 ? '+' : '') + fx(chg / s.prevClose * 100) + '%</b> vs yesterday\'s close</span><span class="mut">5-day avg range ' + fx(s.avgRange / I.us, I.us < 1 ? 0 : 1) + ' ' + I.u + '</span></div>';
   }).catch(function () { var el = $('#pcStats'); if (el) el.textContent = 'Range data unavailable'; });
 }
+/* ---------- TECHNICAL STRATEGY ANALYSIS ---------- */
+
+var technicalAnalysisResult = null;
+
+async function runTechnicalAnalysis() {
+
+  var symbol = $('#analysis_symbol').value;
+
+  $('#technicalAnalysisSummary').innerHTML =
+    '<div class="mut">Analyzing ' +
+    esc(symbol) +
+    ' across Monthly, Weekly, Daily and 4H…</div>';
+
+  $('#technicalTimeframes').innerHTML =
+    '<div class="mut">Loading technical data…</div>';
+
+  $('#technicalSignals').innerHTML = '';
+
+  try {
+
+    var result = await call('getTechnicalAnalysis', symbol);
+
+    technicalAnalysisResult = result;
+
+    drawTechnicalAnalysis(result);
+
+  } catch (e) {
+
+    $('#technicalAnalysisSummary').innerHTML =
+      '<div class="neg">' +
+      esc(e.message) +
+      '</div>';
+
+    $('#technicalTimeframes').innerHTML = '';
+    $('#technicalSignals').innerHTML = '';
+  }
+}
 
 function renderPlan() {
   var accItems = S.accounts.map(function (a) { return {v: a.account_id, l: a.name || a.account_id}; });
@@ -1941,7 +2065,230 @@ async function renderNews() {
   }
   drawNews();
 }
+function drawTechnicalAnalysis(result) {
 
+  if (!result || !result.combined) {
+    $('#technicalAnalysisSummary').innerHTML =
+      '<div class="mut">No technical analysis returned.</div>';
+    return;
+  }
+
+  var combined = result.combined;
+
+  var buy = combined.buy_probability;
+  var sell = combined.sell_probability;
+
+  var tag =
+    combined.bias === 'buy'
+      ? 'buy'
+      : combined.bias === 'sell'
+        ? 'sell'
+        : 'neutral';
+
+  $('#technicalAnalysisSummary').innerHTML =
+
+    '<div class="rowb">' +
+
+      '<div>' +
+        '<div class="mut">TickAtlas Technical Analysis</div>' +
+        '<h2 style="margin:4px 0">' +
+          esc(result.symbol) +
+        '</h2>' +
+      '</div>' +
+
+      '<span class="sigtag ' + tag + '">' +
+        combined.bias.toUpperCase() +
+      '</span>' +
+
+    '</div>' +
+
+    '<div class="kpis" style="margin-top:14px">' +
+
+      '<div class="kpi">' +
+        '<div class="lb">BUY</div>' +
+        '<div class="amt pos">' +
+          (buy == null ? '—' : buy + '%') +
+        '</div>' +
+      '</div>' +
+
+      '<div class="kpi">' +
+        '<div class="lb">SELL</div>' +
+        '<div class="amt neg">' +
+          (sell == null ? '—' : sell + '%') +
+        '</div>' +
+      '</div>' +
+
+    '</div>' +
+
+    '<div class="hint" style="margin-top:12px">' +
+      'Analyzed: ' +
+      esc(result.analyzed_at || '—') +
+    '</div>';
+
+  drawTechnicalTimeframes(result.timeframes);
+
+  drawTechnicalSignals(result.timeframes);
+}
+function drawTechnicalTimeframes(timeframes) {
+
+  var order = ['MN1', 'W1', 'D1', 'H4'];
+
+  var labels = {
+    MN1: 'Monthly',
+    W1: 'Weekly',
+    D1: 'Daily',
+    H4: '4 Hour'
+  };
+
+  var rows = order
+    .filter(function(tf) {
+      return timeframes && timeframes[tf];
+    })
+    .map(function(tf) {
+
+      var r = timeframes[tf];
+
+      var tag =
+        r.bias === 'buy'
+          ? 'buy'
+          : r.bias === 'sell'
+            ? 'sell'
+            : 'neutral';
+
+      return (
+
+        '<tr>' +
+
+          '<td><b>' +
+            labels[tf] +
+          '</b></td>' +
+
+          '<td>' +
+            (r.buy_probability == null
+              ? '—'
+              : r.buy_probability + '%') +
+          '</td>' +
+
+          '<td>' +
+            (r.sell_probability == null
+              ? '—'
+              : r.sell_probability + '%') +
+          '</td>' +
+
+          '<td>' +
+            '<span class="sigtag ' + tag + '">' +
+              String(r.bias || 'neutral').toUpperCase() +
+            '</span>' +
+          '</td>' +
+
+        '</tr>'
+      );
+
+    }).join('');
+
+  $('#technicalTimeframes').innerHTML = rows
+
+    ? '<div style="overflow-x:auto">' +
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>Timeframe</th>' +
+              '<th>Buy</th>' +
+              '<th>Sell</th>' +
+              '<th>Bias</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            rows +
+          '</tbody>' +
+        '</table>' +
+      '</div>'
+
+    : '<div class="mut">No timeframe results.</div>';
+}
+function drawTechnicalSignals(timeframes) {
+
+  var order = ['MN1', 'W1', 'D1', 'H4'];
+
+  var labels = {
+    MN1: 'Monthly',
+    W1: 'Weekly',
+    D1: 'Daily',
+    H4: '4 Hour'
+  };
+
+  var html = '';
+
+  order.forEach(function(tf) {
+
+    var r = timeframes && timeframes[tf];
+
+    if (!r || !r.signals) return;
+
+    html +=
+      '<details class="cl" style="margin-bottom:8px">' +
+
+        '<summary>' +
+          '<b>' +
+            labels[tf] +
+          '</b>' +
+
+          '<span class="mut" style="margin-left:8px">' +
+            'Buy ' + (r.buy_probability == null ? '—' : r.buy_probability + '%') +
+            ' · Sell ' + (r.sell_probability == null ? '—' : r.sell_probability + '%') +
+          '</span>' +
+
+        '</summary>';
+
+    html += '<div style="margin-top:8px">';
+
+    html += r.signals.map(function(s) {
+
+      var tag =
+        s.signal === 'buy'
+          ? 'buy'
+          : s.signal === 'sell'
+            ? 'sell'
+            : 'neutral';
+
+      return (
+
+        '<div class="list-row">' +
+
+          '<div>' +
+            '<b>' + esc(s.indicator) + '</b>' +
+
+            '<div class="mut">' +
+              esc(s.reason || '') +
+            '</div>' +
+          '</div>' +
+
+          '<div style="text-align:right">' +
+
+            '<div>' +
+              (s.value == null
+                ? '—'
+                : esc(String(s.value))) +
+            '</div>' +
+
+            '<span class="sigtag ' + tag + '">' +
+              String(s.signal || 'neutral').toUpperCase() +
+            '</span>' +
+
+          '</div>' +
+
+        '</div>'
+
+      );
+
+    }).join('');
+
+    html += '</div></details>';
+  });
+
+  $('#technicalSignals').innerHTML =
+    html || '<div class="mut">No indicator signals available.</div>';
+}
 function drawNews() {
   var now = Date.now(), rank = {High: 3, Medium: 2, Low: 1, Holiday: 0};
   var min = PLAN.imp === 'High' ? 3 : PLAN.imp === 'Medium' ? 2 : 0;
@@ -2044,6 +2391,9 @@ function renderTab(name) {
   else if (name === 'trades') renderTrades();
   else if (name === 'stats') renderStats();
   else if (name === 'plan') renderPlan();
+  else if (name === 'analysis') {
+  populateAnalysisStrategies();
+}
   else if (name === 'news') renderNews();
   else if (name === 'log') { populateSelects(); if (!$('#f_exit_time').value && !S.editing) $('#f_exit_time').value = nowLocalInput(); }
   else if (name === 'more') showMore(S.more);
@@ -2075,6 +2425,10 @@ function bind() {
   $('#calNext').addEventListener('click', function () { S.cal.m++; if (S.cal.m > 11) { S.cal.m = 0; S.cal.y++; } renderCal(tradesFor()); });
   $('#moreChips').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) showMore(b.dataset.m); });
   $('#btnLogout').addEventListener('click', function () { if (confirm('Sign out?')) logout(); });
+  $('#btnTechnicalAnalysis').addEventListener(
+  'click',
+  runTechnicalAnalysis
+);
   document.addEventListener('click', function (e) {
     var t;
     if ((t = e.target.closest('[data-trade]'))) return openTrade(t.dataset.trade);
@@ -2106,6 +2460,31 @@ function bind() {
   // live: refresh every 5 minutes while the tab is visible
   setInterval(function () { if (document.visibilityState === 'visible' && S.loaded && $('#modal').hidden) refreshData(false); }, 300000);
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && S.loaded && Date.now() - S.lastLoad > 300000) refreshData(false); });
+}
+function populateAnalysisStrategies() {
+
+  var el = $('#analysis_strategy');
+
+  if (!el) return;
+
+  var current = el.value;
+
+  el.innerHTML =
+    '<option value="">All configured strategies</option>' +
+
+    S.strategies.map(function(s) {
+
+      return '<option value="' +
+        esc(s.strategy_id) +
+        '">' +
+        esc(s.name) +
+        '</option>';
+
+    }).join('');
+
+  if (current) {
+    el.value = current;
+  }
 }
 var started = false;
 function startApp() {
