@@ -6,8 +6,17 @@ export default async function handler(req, res) {
     });
   }
 
+  const appsScriptUrl = process.env.PIZZOH_APPS_SCRIPT_URL;
+
+  if (!appsScriptUrl) {
+    return res.status(500).json({
+      ok: false,
+      error: 'PIZZOH_APPS_SCRIPT_URL is missing'
+    });
+  }
+
   try {
-    const response = await fetch(process.env.PIZZOH_APPS_SCRIPT_URL, {
+    const response = await fetch(appsScriptUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -17,24 +26,16 @@ export default async function handler(req, res) {
 
     const text = await response.text();
 
-    let data;
-
-    try {
-      data = JSON.parse(text);
-    } catch (e) {
-      return res.status(502).json({
-        ok: false,
-        error: 'Apps Script returned an invalid response',
-        raw: text.substring(0, 500)
-      });
-    }
-
-    return res.status(200).json(data);
+    return res.status(200).json({
+      proxy_ok: true,
+      apps_script_status: response.status,
+      apps_script_response: text
+    });
 
   } catch (error) {
     return res.status(500).json({
-      ok: false,
-      error: error.message || 'Proxy request failed'
+      proxy_ok: false,
+      error: error.message || String(error)
     });
   }
 }
