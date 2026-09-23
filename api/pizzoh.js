@@ -11,10 +11,13 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Body may already be a string (text/plain) or a parsed object (application/json)
+    const payload = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+
     const response = await fetch(appsScriptUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body),
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: payload,
     });
 
     const text = await response.text();
@@ -22,14 +25,11 @@ export default async function handler(req, res) {
     try {
       data = JSON.parse(text);
     } catch (e) {
-      // Apps Script didn't return JSON — usually means the deployment
-      // isn't public, or returned an HTML login/error page.
       return res.status(502).json({
         ok: false,
         error: 'Apps Script did not return JSON (status ' + response.status + '): ' + text.slice(0, 300),
       });
     }
-
     return res.status(200).json(data);
   } catch (error) {
     return res.status(500).json({ ok: false, error: error.message || String(error) });
