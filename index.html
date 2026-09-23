@@ -363,6 +363,10 @@ details.cl[open] summary{margin-bottom:8px}
     <!-- PLAN -->
 <section class="tab" id="tab-plan" hidden>
   <div class="card"><div class="rowb"><h3>Markets</h3><span class="mut" id="tickMeta"></span></div><div class="ticker" id="ticker"></div></div>
+  <div class="card"><div class="rowb"><h3>Strategy analysis</h3><button class="btn ghost sm" id="btnAnalyze">Analyze</button></div>
+  <div id="analysisManual"></div>
+  <div id="analysisBox"><div class="mut">Pick a pair below, then tap Analyze.</div></div>
+</div>
   <div class="sum">
     <div class="row">
       <div><div class="lb">Expected profit</div><div class="amt pos" id="sProfit">—</div></div>
@@ -462,6 +466,24 @@ details.cl[open] summary{margin-bottom:8px}
           <button class="btn full" id="btnAddStrat">Save strategy</button>
           <div class="hint">Put the version in the name (v1, v2) so results stay comparable.</div>
         </div>
+        <div class="card"><h3>Strategy rules</h3>
+  <div class="form">
+    <label>Strategy<select id="sr_strategy"></select></label>
+    <label>Timeframe<select id="sr_tf"><option value="H1">H1</option><option value="H4">H4</option><option value="D">Daily</option></select></label>
+    <label>SL: ATR multiplier<input id="sr_atrmult" type="number" step="0.1" value="1.5"></label>
+  </div>
+  <div id="sr_conds"></div>
+  <div class="chips" style="margin-top:8px">
+    <button type="button" class="btn ghost sm" data-addcond="trend_ema">+ Trend (EMA)</button>
+    <button type="button" class="btn ghost sm" data-addcond="structure_swing">+ Structure</button>
+    <button type="button" class="btn ghost sm" data-addcond="near_level">+ Near level</button>
+    <button type="button" class="btn ghost sm" data-addcond="rsi">+ RSI</button>
+    <button type="button" class="btn ghost sm" data-addcond="no_news">+ No-news filter</button>
+    <button type="button" class="btn ghost sm" data-addcond="manual">+ Manual input</button>
+  </div>
+  <button class="btn full" id="btnSaveRules">Save rules</button>
+  <div class="hint">TP targets the nearest swing/session level beyond entry; SL is ATR × multiplier. Add and save rules per strategy, then run them from the Plan tab.</div>
+</div>
         <div class="card"><h3>Daily tasks</h3>
           <div style="display:flex;gap:8px"><input id="t_new" placeholder="e.g. Mark up HTF levels" style="margin-top:0"><button class="btn" id="btnAddTask">Add</button></div>
           <div id="taskSetup" style="margin-top:8px"></div>
@@ -1088,6 +1110,7 @@ function renderSetup() {
     var rules = [a.profit_target_pct != null ? 'target ' + a.profit_target_pct + '%' : '', a.max_daily_loss_pct != null ? 'daily ' + a.max_daily_loss_pct + '%' : '', a.max_total_dd_pct != null ? 'max DD ' + a.max_total_dd_pct + '% ' + (a.dd_type || '') : ''].filter(Boolean).join(' · ');
     return '<div class="list-row"><div><b>' + esc(a.name) + '</b><div class="mut">' + esc(a.account_type) + ' · ' + money(a.starting_balance, 0) + (rules ? ' · ' + rules : '') + '</div></div><span class="mut">' + esc(a.status || '') + '</span></div>';
   }).join('') : '<div class="mut">No accounts yet.</div>';
+  fillSelect($('#sr_strategy'), S.strategies.map(function (s) { return {v: s.strategy_id, l: s.name || s.strategy_id}; }), null);
   renderTasks();
 }
 function showMore(name) {
@@ -1262,6 +1285,95 @@ function drawOverview() {
   }
   if (S.acc === 'ALL') html += runningSummaryHTML(os);
   box.innerHTML = html + os.map(function (o) { return accCard(o, S.acc === 'ALL' && os.length > 1); }).join('');
+}
+/* ---------- STRATEGY RULES BUILDER ---------- */
+var CONDLABEL = {trend_ema:'Trend (EMA)', structure_swing:'Structure (HH/HL vs LL/LH)', near_level:'Near swing/session level', rsi:'RSI', no_news:'No-news filter', manual:'Manual input'};
+var srConds = [];
+
+function condRowHtml(c, i) {
+  var f = '';
+  if (c.type === 'trend_ema') f = '<label>EMA period<input type="number" data-k="period" value="' + (c.params.period||50) + '"></label>';
+  else if (c.type === 'structure_swing') f = '<div class="hint">Last 10 swing highs/lows on the chosen timeframe.</div>';
+  else if (c.type === 'near_level') f = '<label>Within (x ATR)<input type="number" step="0.1" data-k="within_atr" value="' + (c.params.within_atr||0.5) + '"></label>';
+  else if (c.type === 'rsi') f = '<label>Period<input type="number" data-k="period" value="' + (c.params.period||14) + '"></label><label>Oversold<input type="number" data-k="oversold" value="' + (c.params.oversold||30) + '"></label><label>Overbought<input type="number" data-k="overbought" value="' + (c.params.overbought||70) + '"></label>';
+  else if (c.type === 'no_news') f = '<label>Mins before<input type="number" data-k="minutes_before" value="' + (c.params.minutes_before||30) + '"></label><label>Mins after<input type="number" data-k="minutes_after" value="' + (c.params.minutes_after||30) + '"></label>';
+  else if (c.type === 'manual') f = '<label class="full">Label shown when checking<input data-k="label" value="' + esc(c.label||'') + '" placeholder="e.g. Options Delta read"></label>';
+  return '<div class="condrow" data-idx="' + i + '"><div style="flex:1"><b>' + CONDLABEL[c.type] + '</b><div class="cf">' + f + '</div></div><button type="button" class="btn danger sm" data-rmcond="' + i + '">✕</button></div>';
+}
+function renderConds() { $('#sr_conds').innerHTML = srConds.map(condRowHtml).join('') || '<div class="hint">No conditions yet — add at least one.</div>'; }
+function addCond(type) { srConds.push({id: 'c' + Date.now() + Math.floor(Math.random()*1000), type: type, params: {}, label: ''}); renderConds(); }
+function syncCondsFromInputs() {
+  $$('#sr_conds .condrow').forEach(function (row) {
+    var i = Number(row.dataset.idx), c = srConds[i]; if (!c) return;
+    $$('[data-k]', row).forEach(function (inp) { if (inp.dataset.k === 'label') c.label = inp.value.trim(); else c.params[inp.dataset.k] = Number(inp.value); });
+  });
+}
+async function loadStratRules() {
+  var id = $('#sr_strategy').value;
+  if (!id) { srConds = []; renderConds(); return; }
+  try {
+    var cfg = await call('getStratRules', id);
+    $('#sr_tf').value = cfg ? cfg.timeframe : 'H1';
+    $('#sr_atrmult').value = cfg ? cfg.sl_atr_mult : 1.5;
+    srConds = cfg ? cfg.conditions : [];
+  } catch (e) { srConds = []; }
+  renderConds();
+}
+async function saveStratRulesBtn() {
+  var id = $('#sr_strategy').value;
+  if (!id) return toast('Pick a strategy first', true);
+  syncCondsFromInputs();
+  if (!srConds.length) return toast('Add at least one condition', true);
+  try {
+    await call('saveStratRules', {strategy_id: id, timeframe: $('#sr_tf').value, sl_atr_mult: num($('#sr_atrmult').value), conditions: srConds});
+    toast('Rules saved for ' + $('#sr_strategy').selectedOptions[0].text);
+  } catch (e) { toast(e.message, true); }
+}
+function bindStratRules() {
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('[data-addcond]'); if (a) return addCond(a.dataset.addcond);
+    var r = e.target.closest('[data-rmcond]'); if (r) { syncCondsFromInputs(); srConds.splice(Number(r.dataset.rmcond),1); renderConds(); return; }
+    var m = e.target.closest('[data-manual] button');
+    if (m) {
+      var seg = m.closest('[data-manual]'), parts = seg.dataset.manual.split('|');
+      manualAnswers[parts[0]] = manualAnswers[parts[0]] || {};
+      manualAnswers[parts[0]][parts[1]] = m.dataset.v;
+      runAnalysis();
+    }
+  });
+  $('#sr_strategy').addEventListener('change', loadStratRules);
+  $('#btnSaveRules').addEventListener('click', saveStratRulesBtn);
+  $('#btnAnalyze').addEventListener('click', runAnalysis);
+}
+
+/* ---------- STRATEGY ANALYSIS ---------- */
+var manualAnswers = {};
+async function runAnalysis() {
+  var sym = $('#p_symbol').value;
+  $('#analysisBox').innerHTML = '<div class="mut">Checking…</div>';
+  try { drawAnalysis(await call('analyzeAllStrategies', sym, manualAnswers), sym); }
+  catch (e) { $('#analysisBox').innerHTML = '<div class="neg">' + esc(e.message) + '</div>'; }
+}
+function drawAnalysis(res, sym) {
+  if (!res.length) { $('#analysisBox').innerHTML = '<div class="mut">No strategies have rules yet. Add them under More → Setup.</div>'; $('#analysisManual').innerHTML = ''; return; }
+  var manualBlocks = [];
+  res.forEach(function (r) { (r.conditions||[]).forEach(function (c) { if (c.type === 'manual') manualBlocks.push({strategy_id: r.strategy_id, stratName: r.name, cond_id: c.id, label: c.label || 'Manual input'}); }); });
+  $('#analysisManual').innerHTML = manualBlocks.length ? '<div class="hint" style="margin-bottom:6px">Set these, then it re-checks automatically:</div>' + manualBlocks.map(function (m) {
+    var cur = (manualAnswers[m.strategy_id]||{})[m.cond_id] || 'neutral';
+    return '<div class="list-row"><span>' + esc(m.stratName) + ': ' + esc(m.label) + '</span><div class="seg" style="width:auto;margin:0" data-manual="' + m.strategy_id + '|' + m.cond_id + '">' +
+      ['buy','neutral','sell'].map(function (v) { return '<button type="button" data-v="'+v+'" class="'+(cur===v?'on':'')+'" style="padding:6px 10px">'+v+'</button>'; }).join('') + '</div></div>';
+  }).join('') : '';
+  var buyN = res.filter(function (r) { return r.bias === 'buy'; }).length, sellN = res.filter(function (r) { return r.bias === 'sell'; }).length;
+  var d = DEC[sym] || 2;
+  var summary = '<div class="pcard"><b>Combined: ' + buyN + ' buy, ' + sellN + ' sell, ' + (res.length - buyN - sellN) + ' neutral</b></div>';
+  $('#analysisBox').innerHTML = summary + res.map(function (r) {
+    if (r.error) return '<div class="stratcard"><b>' + esc(r.name) + '</b> <span class="neg">' + esc(r.error) + '</span></div>';
+    var tag = r.bias === 'buy' ? 'buy' : r.bias === 'sell' ? 'sell' : 'neutral';
+    return '<div class="stratcard"><div class="rowb"><b>' + esc(r.name) + '</b><span class="sigtag ' + tag + '">' + r.bias.toUpperCase() + (r.confidence != null ? ' · ' + Math.round(r.confidence*100) + '%' : '') + '</span></div>' +
+      (r.blocked ? '<div class="hint amb">Blocked by: ' + esc(r.blocked) + '</div>' : '') +
+      (r.bias !== 'neutral' ? '<div class="kv"><div><div class="k">Entry</div><div class="v">' + r.entry.toFixed(d) + '</div></div><div><div class="k">SL</div><div class="v neg">' + r.sl.toFixed(d) + '</div></div><div><div class="k">TP</div><div class="v pos">' + (r.tp!=null?r.tp.toFixed(d):'—') + '</div></div><div><div class="k">TP basis</div><div class="v" style="font-size:12px">' + (r.tp_fallback?'2R fallback':esc(r.tp_source||'—')) + '</div></div></div>' : '') +
+      '<div class="hint">' + r.conditions.map(function (c) { return esc(c.label) + ': ' + c.signal; }).join(' · ') + '</div></div>';
+  }).join('');
 }
 /* ---------- PLAN + NEWS ---------- */
 var PLAN = {plans: [], prices: null, priceErr: '', err: '', news: null, newsAt: 0, day: 'today', imp: 'All', cur: 'ALL', dir: 'buy', timeTouched: false, busy: false, fx: null, fxAt: 0};
@@ -1625,7 +1737,7 @@ function bind() {
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && S.loaded && Date.now() - S.lastLoad > 300000) refreshData(false); });
 }
 function startApp() {
-  setChartDefaults(); bind(); bindPlan(); bindAccMenu(); resetLog(); showTab('home'); loadAll();
+  setChartDefaults(); bind(); bindPlan(); bindAccMenu(); bindStratRules(); resetLog(); showTab('home'); loadAll();
 }
 $('#li_submit').addEventListener('click', doLogin);
 $('#li_pass').addEventListener('keydown', function (e) { if (e.key === 'Enter') doLogin(); });
@@ -1633,6 +1745,14 @@ $('#li_user').addEventListener('keydown', function (e) { if (e.key === 'Enter') 
 if (localStorage.getItem('mt_session')) { hideLogin(); startApp(); } else { showLogin(); }
 window.__app = {S: S, showTab: showTab, calcStats: calcStats, openTrade: openTrade, riskFor: riskFor, pnlFor: pnlFor, calcUpdate: calcUpdate};
 })();
+.condrow{background:var(--card2);border-radius:10px;padding:10px;margin-bottom:8px;display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.condrow .cf{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-top:6px}
+.condrow .cf label{font-size:11px}
+.sigtag{font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px}
+.sigtag.buy{background:rgba(34,197,94,.15);color:var(--green)}
+.sigtag.sell{background:rgba(239,68,68,.15);color:var(--red)}
+.sigtag.neutral{background:var(--card2);color:var(--mut);border:1px solid var(--line)}
+.stratcard{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
 </script>
 </body>
 </html>
