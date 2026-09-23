@@ -12,14 +12,17 @@ export default async function handler(req, res) {
     return res.status(500).json({ ok: false, error: 'PIZZOH_APPS_SCRIPT_URL is missing' });
   }
 
+  // Body may arrive as a string (text/plain) or a parsed object (application/json)
   const payload = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
 
-  // Only retry reads. Never retry writes.
+  // Retry reads only. Never retry writes (saveTrade, savePlan, etc.)
   let fn = '';
   try { fn = JSON.parse(payload).fn || ''; } catch (e) {}
-  const attempts = /^get/.test(fn) ? 3 : 1;
+  const attempts = /^get/.test(fn) || fn === 'checkPending' ? 4 : 1;
 
-  let lastText = '', lastStatus = 0;
+  let lastText = '';
+  let lastStatus = 0;
+
   for (let i = 0; i < attempts; i++) {
     try {
       const response = await fetch(appsScriptUrl, {
@@ -29,15 +32,17 @@ export default async function handler(req, res) {
       });
       lastStatus = response.status;
       lastText = await response.text();
+
       try {
         return res.status(200).json(JSON.parse(lastText));
       } catch (e) {
-        // Not JSON (Google HTML error page). Retry after a short pause.
+        // Not JSON: Google returned an HTML error page. Retry after a pause.
       }
     } catch (error) {
       lastText = error.message || String(error);
     }
-    if (i < attempts - 1) await sleep(700 * (i + 1));
+
+    if (i < attempts - 1) await sleep(1000 * (i + 1));
   }
 
   return res.status(502).json({
