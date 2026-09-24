@@ -461,90 +461,52 @@ details.cl[open] summary{margin-bottom:8px}
     </section>
 
     <!-- STRATEGY ANALYSIS -->
-<section class="tab" id="tab-analysis" hidden>
+    <section class="tab" id="tab-analysis" hidden>
 
-  <div class="card">
-    <div class="rowb">
-      <div>
-        <h3>Strategy Analysis</h3>
-        <div class="mut">
-          Run a fresh multi-source analysis when you need it.
+      <div class="card">
+        <div class="rowb">
+          <div>
+            <h3>Strategy Analysis</h3>
+            <div class="mut">Run a fresh multi-source analysis when you need it.</div>
+          </div>
+          <button class="btn" id="btnTechnicalAnalysis">Analyze Now</button>
         </div>
       </div>
 
-      <button class="btn" id="btnTechnicalAnalysis">
-        Analyze Now
-      </button>
-    </div>
-  </div>
-
-  <!-- Analysis controls -->
-  <div class="card">
-
-    <div class="form">
-
-      <label>
-        Strategy
-        <select id="analysis_strategy"></select>
-      </label>
-
-      <label>
-        Symbol
-        <select id="analysis_symbol">
-          <option value="XAUUSD">XAUUSD</option>
-          <option value="GBPUSD">GBPUSD</option>
-          <option value="USDJPY">USDJPY</option>
-          <option value="EURUSD">EURUSD</option>
-          <option value="DXY">DXY</option>
-        </select>
-      </label>
-
-    </div>
-
-  </div>
-
-  <!-- Overall result -->
-  <div class="card" id="technicalAnalysisSummary">
-
-    <div class="mut">
-      Select a strategy and click <b>Analyze Now</b>.
-    </div>
-
-  </div>
-
-  <!-- Timeframe analysis -->
-  <div class="card">
-
-    <div class="rowb">
-      <h3>Technical Timeframes</h3>
-      <span class="mut">TickAtlas</span>
-    </div>
-
-    <div id="technicalTimeframes">
-      <div class="mut">
-        No analysis run yet.
+      <!-- Analysis controls -->
+      <div class="card">
+        <div class="form">
+          <label>Strategy<select id="analysis_strategy"></select></label>
+          <label>Symbol
+            <select id="analysis_symbol">
+              <option value="XAUUSD">XAUUSD</option>
+              <option value="GBPUSD">GBPUSD</option>
+              <option value="USDJPY">USDJPY</option>
+              <option value="EURUSD">EURUSD</option>
+              <option value="DXY">DXY</option>
+            </select>
+          </label>
+        </div>
       </div>
-    </div>
 
-  </div>
-
-  <!-- Detailed signals -->
-  <div class="card">
-
-    <div class="rowb">
-      <h3>Technical Signals</h3>
-      <span class="mut">Indicator breakdown</span>
-    </div>
-
-    <div id="technicalSignals">
-      <div class="mut">
-        No analysis run yet.
+      <!-- Overall result -->
+      <div class="card" id="technicalAnalysisSummary">
+        <div class="mut">Select a strategy and click <b>Analyze Now</b>.</div>
       </div>
-    </div>
 
-  </div>
+      <!-- Timeframe analysis -->
+      <div class="card">
+        <div class="rowb"><h3>Technical Timeframes</h3><span class="mut">TickAtlas</span></div>
+        <div id="technicalTimeframes"><div class="mut">No analysis run yet.</div></div>
+      </div>
 
-</section>
+      <!-- Detailed signals -->
+      <div class="card">
+        <div class="rowb"><h3>Technical Signals</h3><span class="mut">Indicator breakdown</span></div>
+        <div id="technicalSignals"><div class="mut">No analysis run yet.</div></div>
+      </div>
+
+    </section>
 
     <!-- NEWS -->
     <section class="tab" id="tab-news" hidden>
@@ -723,60 +685,9 @@ async function doLogin() {
 
 // max 3 requests in flight at once, so Apps Script isn't flooded
 var inflight = 0, waiters = [];
-function takeSlot() { return new Promise(function (res) { if (inflight < 2) { inflight++; res(); } else waiters.push(res); }); }
+function takeSlot() { return new Promise(function (res) { if (inflight < 3) { inflight++; res(); } else waiters.push(res); }); }
 function freeSlot() { var next = waiters.shift(); if (next) next(); else inflight--; }
 
-function slText(p) { return p.exp_loss < 0 ? 'SL locks +' + money(-p.exp_loss) : 'SL -' + money(p.exp_loss); }
-function lossHtml(p) { return p.exp_loss < 0 ? '<div class="pos">SL locks +' + money(-p.exp_loss) + '</div>' : '<div class="neg">-' + money(p.exp_loss) + '</div>'; }
-function planBtns(p) {
-  return '<button class="btn ghost sm" data-editplan="' + esc(p.plan_id) + '">Edit SL / TP</button> ' +
-    (p.status === 'open'
-      ? '<button class="btn danger sm" data-exitplan="' + esc(p.plan_id) + '">Exit now</button>'
-      : '<button class="btn ghost sm" data-cancelplan="' + esc(p.plan_id) + '">Cancel</button>');
-}
-
-function openPlanEdit(id) {
-  var p = PLAN.plans.find(function (x) { return x.plan_id === id; });
-  if (!p) return;
-  var q = curPx(p.symbol);
-  $('#modalBody').innerHTML = '<button class="icon x" data-close>✕</button>' +
-    '<div><b style="font-size:18px">' + esc(p.symbol) + '</b> <span class="badge ' + esc(p.direction) + '">' + esc(p.direction) + '</span> <span class="badge ' + esc(p.status) + '">' + esc(p.status) + '</span>' +
-    '<div class="mut">' + fx(p.lots) + ' lots · entry ' + p.entry_price + (q != null ? ' · now ' + q.toFixed(DEC[p.symbol]) : '') + '</div></div>' +
-    '<div class="form" style="grid-template-columns:1fr 1fr;margin-top:12px" data-pid="' + esc(id) + '">' +
-    '<label>Stop loss<input id="pe_sl" type="number" step="any" inputmode="decimal" value="' + p.stop_price + '"></label>' +
-    '<label>Take profit<input id="pe_tp" type="number" step="any" inputmode="decimal" value="' + p.target_price + '"></label></div>' +
-    '<div class="hint" id="pe_hint"></div>' +
-    '<button class="btn full" data-pesave="' + esc(id) + '">Save changes</button>';
-  $('#modal').hidden = false;
-  peUpdate();
-}
-function peUpdate() {
-  var f = $('#modalBody [data-pid]'); if (!f) return;
-  var p = PLAN.plans.find(function (x) { return x.plan_id === f.dataset.pid; }); if (!p) return;
-  var sl = num($('#pe_sl').value), tp = num($('#pe_tp').value), h = $('#pe_hint');
-  if (sl == null || tp == null) { h.textContent = ''; return; }
-  var profit = pnlFor(p.symbol, p.direction, p.lots, p.entry_price, tp), loss = -pnlFor(p.symbol, p.direction, p.lots, p.entry_price, sl);
-  h.innerHTML = 'If TP: <span class="pos">+' + money(profit) + '</span> · If SL: ' + (loss >= 0 ? '<span class="neg">-' + money(loss) + '</span>' : '<span class="pos">+' + money(-loss) + ' locked</span>');
-}
-async function savePlanEdit(id) {
-  var sl = num($('#pe_sl').value), tp = num($('#pe_tp').value);
-  if (sl == null || tp == null) return toast('Enter both stop loss and take profit', true);
-  try {
-    await call('updatePlan', id, sl, tp);
-    closeModal(); toast('Levels updated');
-    PLAN.busy = false; await loadPlans(false);
-  } catch (e) { toast(e.message, true); }
-}
-async function exitPlan(id) {
-  var p = PLAN.plans.find(function (x) { return x.plan_id === id; }); if (!p) return;
-  var q = curPx(p.symbol), est = q == null ? null : pnlFor(p.symbol, p.direction, p.lots, p.entry_price, q);
-  if (!confirm('Exit ' + p.symbol + ' ' + p.direction + ' ' + fx(p.lots) + ' lots at market now?' + (est == null ? '' : '\nEstimated P&L ' + smoney(est)))) return;
-  try {
-    var r = await call('closePlan', id);
-    toast('Closed at ' + r.exit_price + ' · ' + smoney(r.pnl));
-    PLAN.busy = false; await loadPlans(false); refreshData(false);
-  } catch (e) { toast(e.message, true); }
-}
 async function call(fn) {
   var args = Array.prototype.slice.call(arguments, 1);
   var token = localStorage.getItem('mt_session');
@@ -794,7 +705,6 @@ async function call(fn) {
     if (!j) throw new Error('Network error, please try again (' + (lastErr && lastErr.message) + ')');
     if (!j.ok) { if (j.error === 'unauthorized') logout(); throw new Error(j.error); }
     if (j.data === undefined) throw new Error('Unexpected empty response from server, please retry');
-return j.data;
     return j.data;
   } finally { freeSlot(); }
 }
@@ -1411,11 +1321,7 @@ function bindAccMenu() {
   });
   document.addEventListener('click', function (e) {
     if (e.target.closest('[data-acc]') || !e.target.closest('#accMenu')) closeAccMenu();
-    if ((t = e.target.closest('[data-editplan]'))) return openPlanEdit(t.dataset.editplan);
-if ((t = e.target.closest('[data-exitplan]'))) return exitPlan(t.dataset.exitplan);
-if ((t = e.target.closest('[data-pesave]'))) return savePlanEdit(t.dataset.pesave);
   });
-  $('#modalBody').addEventListener('input', function (e) { if (e.target.id === 'pe_sl' || e.target.id === 'pe_tp') peUpdate(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeAccMenu(); });
 }
 
@@ -1452,12 +1358,23 @@ function acctOverview(a) {
     syms: closed.map(function (t) { return t.symbol; }).concat(open.map(function (p) { return p.symbol; }))};
 }
 
+/* stop-loss text/labels that handle a stop trailed into profit (exp_loss < 0 means profit is locked in) */
+function slText(p) { return p.exp_loss < 0 ? 'SL locks +' + money(-p.exp_loss) : 'SL -' + money(p.exp_loss); }
+function lossHtml(p) { return p.exp_loss < 0 ? '<div class="pos">SL locks +' + money(-p.exp_loss) + '</div>' : '<div class="neg">-' + money(p.exp_loss) + '</div>'; }
+function planBtns(p) {
+  return '<button class="btn ghost sm" data-editplan="' + esc(p.plan_id) + '">Edit SL / TP</button> ' +
+    (p.status === 'open'
+      ? '<button class="btn danger sm" data-exitplan="' + esc(p.plan_id) + '">Exit now</button>'
+      : '<button class="btn ghost sm" data-cancelplan="' + esc(p.plan_id) + '">Cancel</button>');
+}
+
 function posRow(p) {
   var q = curPx(p.symbol), fl = floatOf(p);
   var prog = q == null ? null : (q - p.stop_price) / (p.target_price - p.stop_price);
   var bar = prog == null ? '' : '<div class="bar" style="margin-top:8px"><div class="track"><div class="fill" style="width:' + Math.max(0, Math.min(100, prog * 100)) + '%;background:' + (prog >= 0.5 ? 'var(--green)' : 'var(--red)') + '"></div></div><div class="lbl" style="margin:4px 0 0"><span>SL ' + p.stop_price + '</span><span>TP ' + p.target_price + '</span></div></div>';
   return '<div class="pcard"><div class="rowb"><div><b>' + esc(p.symbol) + '</b> <span class="badge ' + esc(p.direction) + '">' + esc(p.direction) + '</span><div class="mut" style="margin-top:2px">' + fx(p.lots) + ' lots · in at ' + p.entry_price + (q != null ? ' · now ' + q.toFixed(DEC[p.symbol]) : '') + '</div></div>' +
-    '<div style="text-align:right"><div class="' + cls(fl) + '" style="font-size:22px;font-weight:800">' + (fl == null ? '—' : dualMoney(fl)) + '</div><div class="mut">TP +' + money(p.exp_profit) + ' · ' + slText(p) + '</div></div></div>' + bar + '<div style="margin-top:8px">' + planBtns(p) + '</div></div>';}
+    '<div style="text-align:right"><div class="' + cls(fl) + '" style="font-size:22px;font-weight:800">' + (fl == null ? '—' : dualMoney(fl)) + '</div><div class="mut">TP +' + money(p.exp_profit) + ' · ' + slText(p) + '</div></div></div>' + bar + '<div style="margin-top:8px">' + planBtns(p) + '</div></div>';
+}
 function pendRow(p) {
   var q = curPx(p.symbol), I = INFO[p.symbol];
   var away = q == null ? '' : ' · ' + fx(Math.abs(q - p.entry_price) / I.us, I.us < 1 ? 1 : 0) + ' ' + I.u + ' to entry';
@@ -1933,7 +1850,7 @@ function planCalc() {
   if (en && sl && tp && lots > 0) {
     if (buy ? !(sl < en && tp > en) : !(sl > en && tp < en)) {
       chips = '<span class="chipwarn bad">' + (buy ? 'Buy: stop loss below entry, take profit above' : 'Sell: stop loss above entry, take profit below') + '</span>';
-       } else {
+    } else {
       profit = +(Math.abs(tp - en) * lots * perLot(sym, tp)).toFixed(2);
       loss = +(Math.abs(en - sl) * lots * perLot(sym, sl)).toFixed(2);
       var s = statusOf($('#p_account').value), blocked = '';
@@ -1950,7 +1867,8 @@ function planCalc() {
       var w = newsNear(sym); if (w) chips += '<span class="chipwarn">' + esc(w) + '</span>';
       if (blocked) chips = '<span class="chipwarn bad">Blocked: ' + esc(blocked) + '</span>' + chips;
       else { planReady = {profit: profit, loss: loss}; $('#btnPlan').disabled = false; }
-    } else chips = '<span class="chipwarn" style="background:var(--card2);color:var(--mut)">Enter entry, stop loss, take profit and lots</span>';
+    }
+  } else chips = '<span class="chipwarn" style="background:var(--card2);color:var(--mut)">Enter entry, stop loss, take profit and lots</span>';
   $('#sProfit').textContent = profit == null ? '—' : '+' + money(profit);
   $('#sLoss').textContent = loss == null ? '—' : '-' + money(loss);
   $('#sRR').textContent = profit == null ? '—' : '1 : ' + fx(profit / loss);
@@ -2028,14 +1946,61 @@ function drawPlans() {
     var kind = p.status === 'pending' && cur != null ? (buy ? (p.entry_price < cur ? 'Buy limit' : 'Buy stop') : (p.entry_price > cur ? 'Sell limit' : 'Sell stop')) + ' · ' : '';
     return '<div class="pcard"><div class="rowb"><div><b>' + esc(p.symbol) + '</b> <span class="badge ' + esc(p.direction) + '">' + esc(p.direction) + '</span> <span class="badge ' + esc(p.status) + '">' + esc(p.status) + '</span>' +
       '<div class="mut" style="margin-top:2px">' + kind + fx(p.lots) + ' lots · entry ' + p.entry_price + ' · ' + esc(stratName(p.strategy_id)) + '</div></div>' +
-'<div style="text-align:right"><div class="pos">+' + money(p.exp_profit) + '</div>' + lossHtml(p) + '</div></div>' + bar +      '<div class="hint">' + (p.status === 'pending' ? 'Waiting for price to reach entry' : 'Floating ' + dualMoney(fl)) + '</div>' +
+      '<div style="text-align:right"><div class="pos">+' + money(p.exp_profit) + '</div>' + lossHtml(p) + '</div></div>' + bar +
+      '<div class="hint">' + (p.status === 'pending' ? 'Waiting for price to reach entry' : 'Floating ' + dualMoney(fl)) + '</div>' +
       (p.notes ? '<div class="hint" style="margin-top:4px">' + esc(p.notes) + '</div>' : '') +
-'<div style="margin-top:8px">' + planBtns(p) + '</div></div>';  }).join('');
+      '<div style="margin-top:8px">' + planBtns(p) + '</div></div>';
+  }).join('');
 }
 
 async function cancelPlan(id) {
   if (!confirm('Cancel this planned trade?')) return;
   try { await call('cancelPlan', id); toast('Plan cancelled', 'info'); await loadPlans(false); } catch (e) { toast(e.message, true); }
+}
+
+/* ---- edit stop loss / take profit, exit at market ---- */
+function openPlanEdit(id) {
+  var p = PLAN.plans.find(function (x) { return x.plan_id === id; });
+  if (!p) return;
+  var q = curPx(p.symbol);
+  $('#modalBody').innerHTML = '<button class="icon x" data-close>✕</button>' +
+    '<div><b style="font-size:18px">' + esc(p.symbol) + '</b> <span class="badge ' + esc(p.direction) + '">' + esc(p.direction) + '</span> <span class="badge ' + esc(p.status) + '">' + esc(p.status) + '</span>' +
+    '<div class="mut">' + fx(p.lots) + ' lots · entry ' + p.entry_price + (q != null ? ' · now ' + q.toFixed(DEC[p.symbol]) : '') + '</div></div>' +
+    '<div class="form" style="grid-template-columns:1fr 1fr;margin-top:12px" data-pid="' + esc(id) + '">' +
+    '<label>Stop loss<input id="pe_sl" type="number" step="any" inputmode="decimal" value="' + p.stop_price + '"></label>' +
+    '<label>Take profit<input id="pe_tp" type="number" step="any" inputmode="decimal" value="' + p.target_price + '"></label></div>' +
+    '<div class="hint" id="pe_hint"></div>' +
+    '<div class="hint">Once price runs 10 pips past the 2R level, the stop moves to 2R automatically.</div>' +
+    '<button class="btn full" data-pesave="' + esc(id) + '">Save changes</button>';
+  $('#modal').hidden = false;
+  peUpdate();
+}
+function peUpdate() {
+  var f = $('#modalBody [data-pid]'); if (!f) return;
+  var p = PLAN.plans.find(function (x) { return x.plan_id === f.dataset.pid; }); if (!p) return;
+  var sl = num($('#pe_sl').value), tp = num($('#pe_tp').value), h = $('#pe_hint');
+  if (sl == null || tp == null) { h.textContent = ''; return; }
+  var profit = pnlFor(p.symbol, p.direction, p.lots, p.entry_price, tp), loss = -pnlFor(p.symbol, p.direction, p.lots, p.entry_price, sl);
+  h.innerHTML = 'If TP: <span class="pos">+' + money(profit) + '</span> · If SL: ' + (loss >= 0 ? '<span class="neg">-' + money(loss) + '</span>' : '<span class="pos">+' + money(-loss) + ' locked</span>');
+}
+async function savePlanEdit(id) {
+  var sl = num($('#pe_sl').value), tp = num($('#pe_tp').value);
+  if (sl == null || tp == null) return toast('Enter both stop loss and take profit', true);
+  try {
+    await call('updatePlan', id, sl, tp);
+    closeModal(); toast('Levels updated');
+    PLAN.busy = false; await loadPlans(false);
+  } catch (e) { toast(e.message, true); }
+}
+async function exitPlan(id) {
+  var p = PLAN.plans.find(function (x) { return x.plan_id === id; }); if (!p) return;
+  var q = curPx(p.symbol), est = q == null ? null : pnlFor(p.symbol, p.direction, p.lots, p.entry_price, q);
+  if (!confirm('Exit ' + p.symbol + ' ' + p.direction + ' ' + fx(p.lots) + ' lots at market now?' + (est == null ? '' : '\nEstimated P&L ' + smoney(est)))) return;
+  try {
+    var r = await call('closePlan', id);
+    toast('Closed at ' + r.exit_price + ' · ' + smoney(r.pnl));
+    PLAN.busy = false; await loadPlans(false); refreshData(false);
+  } catch (e) { toast(e.message, true); }
 }
 
 /* ---- pair detail card ---- */
@@ -2070,39 +2035,21 @@ function openPair(sym) {
       '<div class="rowb" style="margin-top:8px"><span class="' + cls(chg) + '"><b>' + (chg > 0 ? '+' : '') + fx(chg / s.prevClose * 100) + '%</b> vs yesterday\'s close</span><span class="mut">5-day avg range ' + fx(s.avgRange / I.us, I.us < 1 ? 0 : 1) + ' ' + I.u + '</span></div>';
   }).catch(function () { var el = $('#pcStats'); if (el) el.textContent = 'Range data unavailable'; });
 }
-/* ---------- TECHNICAL STRATEGY ANALYSIS ---------- */
 
+/* ---------- TECHNICAL STRATEGY ANALYSIS ---------- */
 var technicalAnalysisResult = null;
 
 async function runTechnicalAnalysis() {
-
   var symbol = $('#analysis_symbol').value;
-
-  $('#technicalAnalysisSummary').innerHTML =
-    '<div class="mut">Analyzing ' +
-    esc(symbol) +
-    ' across Monthly, Weekly, Daily and 4H…</div>';
-
-  $('#technicalTimeframes').innerHTML =
-    '<div class="mut">Loading technical data…</div>';
-
+  $('#technicalAnalysisSummary').innerHTML = '<div class="mut">Analyzing ' + esc(symbol) + ' across Monthly, Weekly, Daily and 4H…</div>';
+  $('#technicalTimeframes').innerHTML = '<div class="mut">Loading technical data…</div>';
   $('#technicalSignals').innerHTML = '';
-
   try {
-
     var result = await call('getTechnicalAnalysis', symbol);
-
     technicalAnalysisResult = result;
-
     drawTechnicalAnalysis(result);
-
   } catch (e) {
-
-    $('#technicalAnalysisSummary').innerHTML =
-      '<div class="neg">' +
-      esc(e.message) +
-      '</div>';
-
+    $('#technicalAnalysisSummary').innerHTML = '<div class="neg">' + esc(e.message) + '</div>';
     $('#technicalTimeframes').innerHTML = '';
     $('#technicalSignals').innerHTML = '';
   }
@@ -2128,228 +2075,68 @@ async function renderNews() {
   drawNews();
 }
 function drawTechnicalAnalysis(result) {
-
   if (!result || !result.combined) {
-    $('#technicalAnalysisSummary').innerHTML =
-      '<div class="mut">No technical analysis returned.</div>';
+    $('#technicalAnalysisSummary').innerHTML = '<div class="mut">No technical analysis returned.</div>';
     return;
   }
-
   var combined = result.combined;
-
   var buy = combined.buy_probability;
   var sell = combined.sell_probability;
-
-  var tag =
-    combined.bias === 'buy'
-      ? 'buy'
-      : combined.bias === 'sell'
-        ? 'sell'
-        : 'neutral';
+  var tag = combined.bias === 'buy' ? 'buy' : combined.bias === 'sell' ? 'sell' : 'neutral';
 
   $('#technicalAnalysisSummary').innerHTML =
-
     '<div class="rowb">' +
-
-      '<div>' +
-        '<div class="mut">TickAtlas Technical Analysis</div>' +
-        '<h2 style="margin:4px 0">' +
-          esc(result.symbol) +
-        '</h2>' +
-      '</div>' +
-
-      '<span class="sigtag ' + tag + '">' +
-        combined.bias.toUpperCase() +
-      '</span>' +
-
+      '<div><div class="mut">TickAtlas Technical Analysis</div><h2 style="margin:4px 0">' + esc(result.symbol) + '</h2></div>' +
+      '<span class="sigtag ' + tag + '">' + combined.bias.toUpperCase() + '</span>' +
     '</div>' +
-
     '<div class="kpis" style="margin-top:14px">' +
-
-      '<div class="kpi">' +
-        '<div class="lb">BUY</div>' +
-        '<div class="amt pos">' +
-          (buy == null ? '—' : buy + '%') +
-        '</div>' +
-      '</div>' +
-
-      '<div class="kpi">' +
-        '<div class="lb">SELL</div>' +
-        '<div class="amt neg">' +
-          (sell == null ? '—' : sell + '%') +
-        '</div>' +
-      '</div>' +
-
+      '<div class="kpi"><div class="lb">BUY</div><div class="amt pos">' + (buy == null ? '—' : buy + '%') + '</div></div>' +
+      '<div class="kpi"><div class="lb">SELL</div><div class="amt neg">' + (sell == null ? '—' : sell + '%') + '</div></div>' +
     '</div>' +
-
-    '<div class="hint" style="margin-top:12px">' +
-      'Analyzed: ' +
-      esc(result.analyzed_at || '—') +
-    '</div>';
+    '<div class="hint" style="margin-top:12px">Analyzed: ' + esc(result.analyzed_at || '—') + '</div>';
 
   drawTechnicalTimeframes(result.timeframes);
-
   drawTechnicalSignals(result.timeframes);
 }
 function drawTechnicalTimeframes(timeframes) {
-
   var order = ['MN1', 'W1', 'D1', 'H4'];
+  var labels = {MN1: 'Monthly', W1: 'Weekly', D1: 'Daily', H4: '4 Hour'};
 
-  var labels = {
-    MN1: 'Monthly',
-    W1: 'Weekly',
-    D1: 'Daily',
-    H4: '4 Hour'
-  };
-
-  var rows = order
-    .filter(function(tf) {
-      return timeframes && timeframes[tf];
-    })
-    .map(function(tf) {
-
-      var r = timeframes[tf];
-
-      var tag =
-        r.bias === 'buy'
-          ? 'buy'
-          : r.bias === 'sell'
-            ? 'sell'
-            : 'neutral';
-
-      return (
-
-        '<tr>' +
-
-          '<td><b>' +
-            labels[tf] +
-          '</b></td>' +
-
-          '<td>' +
-            (r.buy_probability == null
-              ? '—'
-              : r.buy_probability + '%') +
-          '</td>' +
-
-          '<td>' +
-            (r.sell_probability == null
-              ? '—'
-              : r.sell_probability + '%') +
-          '</td>' +
-
-          '<td>' +
-            '<span class="sigtag ' + tag + '">' +
-              String(r.bias || 'neutral').toUpperCase() +
-            '</span>' +
-          '</td>' +
-
-        '</tr>'
-      );
-
-    }).join('');
+  var rows = order.filter(function (tf) { return timeframes && timeframes[tf]; }).map(function (tf) {
+    var r = timeframes[tf];
+    var tag = r.bias === 'buy' ? 'buy' : r.bias === 'sell' ? 'sell' : 'neutral';
+    return '<tr><td><b>' + labels[tf] + '</b></td>' +
+      '<td>' + (r.buy_probability == null ? '—' : r.buy_probability + '%') + '</td>' +
+      '<td>' + (r.sell_probability == null ? '—' : r.sell_probability + '%') + '</td>' +
+      '<td><span class="sigtag ' + tag + '">' + String(r.bias || 'neutral').toUpperCase() + '</span></td></tr>';
+  }).join('');
 
   $('#technicalTimeframes').innerHTML = rows
-
-    ? '<div style="overflow-x:auto">' +
-        '<table>' +
-          '<thead>' +
-            '<tr>' +
-              '<th>Timeframe</th>' +
-              '<th>Buy</th>' +
-              '<th>Sell</th>' +
-              '<th>Bias</th>' +
-            '</tr>' +
-          '</thead>' +
-          '<tbody>' +
-            rows +
-          '</tbody>' +
-        '</table>' +
-      '</div>'
-
+    ? '<div style="overflow-x:auto"><table><thead><tr><th>Timeframe</th><th>Buy</th><th>Sell</th><th>Bias</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
     : '<div class="mut">No timeframe results.</div>';
 }
 function drawTechnicalSignals(timeframes) {
-
   var order = ['MN1', 'W1', 'D1', 'H4'];
-
-  var labels = {
-    MN1: 'Monthly',
-    W1: 'Weekly',
-    D1: 'Daily',
-    H4: '4 Hour'
-  };
-
+  var labels = {MN1: 'Monthly', W1: 'Weekly', D1: 'Daily', H4: '4 Hour'};
   var html = '';
 
-  order.forEach(function(tf) {
-
+  order.forEach(function (tf) {
     var r = timeframes && timeframes[tf];
-
     if (!r || !r.signals) return;
 
-    html +=
-      '<details class="cl" style="margin-bottom:8px">' +
+    html += '<details class="cl" style="margin-bottom:8px"><summary><b>' + labels[tf] + '</b>' +
+      '<span class="mut" style="margin-left:8px">Buy ' + (r.buy_probability == null ? '—' : r.buy_probability + '%') +
+      ' · Sell ' + (r.sell_probability == null ? '—' : r.sell_probability + '%') + '</span></summary>';
 
-        '<summary>' +
-          '<b>' +
-            labels[tf] +
-          '</b>' +
-
-          '<span class="mut" style="margin-left:8px">' +
-            'Buy ' + (r.buy_probability == null ? '—' : r.buy_probability + '%') +
-            ' · Sell ' + (r.sell_probability == null ? '—' : r.sell_probability + '%') +
-          '</span>' +
-
-        '</summary>';
-
-    html += '<div style="margin-top:8px">';
-
-    html += r.signals.map(function(s) {
-
-      var tag =
-        s.signal === 'buy'
-          ? 'buy'
-          : s.signal === 'sell'
-            ? 'sell'
-            : 'neutral';
-
-      return (
-
-        '<div class="list-row">' +
-
-          '<div>' +
-            '<b>' + esc(s.indicator) + '</b>' +
-
-            '<div class="mut">' +
-              esc(s.reason || '') +
-            '</div>' +
-          '</div>' +
-
-          '<div style="text-align:right">' +
-
-            '<div>' +
-              (s.value == null
-                ? '—'
-                : esc(String(s.value))) +
-            '</div>' +
-
-            '<span class="sigtag ' + tag + '">' +
-              String(s.signal || 'neutral').toUpperCase() +
-            '</span>' +
-
-          '</div>' +
-
-        '</div>'
-
-      );
-
-    }).join('');
-
-    html += '</div></details>';
+    html += '<div style="margin-top:8px">' + r.signals.map(function (s) {
+      var tag = s.signal === 'buy' ? 'buy' : s.signal === 'sell' ? 'sell' : 'neutral';
+      return '<div class="list-row"><div><b>' + esc(s.indicator) + '</b><div class="mut">' + esc(s.reason || '') + '</div></div>' +
+        '<div style="text-align:right"><div>' + (s.value == null ? '—' : esc(String(s.value))) + '</div>' +
+        '<span class="sigtag ' + tag + '">' + String(s.signal || 'neutral').toUpperCase() + '</span></div></div>';
+    }).join('') + '</div></details>';
   });
 
-  $('#technicalSignals').innerHTML =
-    html || '<div class="mut">No indicator signals available.</div>';
+  $('#technicalSignals').innerHTML = html || '<div class="mut">No indicator signals available.</div>';
 }
 function drawNews() {
   var now = Date.now(), rank = {High: 3, Medium: 2, Low: 1, Holiday: 0};
@@ -2404,9 +2191,13 @@ function bindPlan() {
   document.addEventListener('click', function (e) {
     var t;
     if ((t = e.target.closest('[data-cancelplan]'))) return cancelPlan(t.dataset.cancelplan);
+    if ((t = e.target.closest('[data-editplan]'))) return openPlanEdit(t.dataset.editplan);
+    if ((t = e.target.closest('[data-exitplan]'))) return exitPlan(t.dataset.exitplan);
+    if ((t = e.target.closest('[data-pesave]'))) return savePlanEdit(t.dataset.pesave);
     if ((t = e.target.closest('[data-pair]'))) return openPair(t.dataset.pair);
     if ((t = e.target.closest('[data-planpair]'))) { closeModal(); pSetSym(t.dataset.planpair); window.scrollTo(0, 0); }
   });
+  $('#modalBody').addEventListener('input', function (e) { if (e.target.id === 'pe_sl' || e.target.id === 'pe_tp') peUpdate(); });
   setInterval(function () { if ((S.tab === 'plan' || S.tab === 'home') && document.visibilityState === 'visible' && S.loaded) loadPlans(true); }, 45000);
 }
 
@@ -2414,6 +2205,7 @@ function bindPlan() {
 function showBanner(msg) { var b = $('#banner'); b.hidden = !msg; b.textContent = msg ? 'Some data failed to load: ' + msg : ''; }
 function setUpdated() { $('#updated').textContent = 'Updated ' + new Date().toLocaleTimeString('en-GB', {hour: '2-digit', minute: '2-digit'}); }
 
+/** One request loads everything (accounts, strategies, status, trades, tasks, backtests). */
 async function loadAll() {
   $('#updated').textContent = 'Loading…';
   try {
@@ -2446,9 +2238,7 @@ function renderTab(name) {
   else if (name === 'trades') renderTrades();
   else if (name === 'stats') renderStats();
   else if (name === 'plan') renderPlan();
-  else if (name === 'analysis') {
-  populateAnalysisStrategies();
-}
+  else if (name === 'analysis') populateAnalysisStrategies();
   else if (name === 'news') renderNews();
   else if (name === 'log') { populateSelects(); if (!$('#f_exit_time').value && !S.editing) $('#f_exit_time').value = nowLocalInput(); }
   else if (name === 'more') showMore(S.more);
@@ -2480,10 +2270,7 @@ function bind() {
   $('#calNext').addEventListener('click', function () { S.cal.m++; if (S.cal.m > 11) { S.cal.m = 0; S.cal.y++; } renderCal(tradesFor()); });
   $('#moreChips').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) showMore(b.dataset.m); });
   $('#btnLogout').addEventListener('click', function () { if (confirm('Sign out?')) logout(); });
-  $('#btnTechnicalAnalysis').addEventListener(
-  'click',
-  runTechnicalAnalysis
-);
+  $('#btnTechnicalAnalysis').addEventListener('click', runTechnicalAnalysis);
   document.addEventListener('click', function (e) {
     var t;
     if ((t = e.target.closest('[data-trade]'))) return openTrade(t.dataset.trade);
@@ -2517,29 +2304,12 @@ function bind() {
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && S.loaded && Date.now() - S.lastLoad > 300000) refreshData(false); });
 }
 function populateAnalysisStrategies() {
-
   var el = $('#analysis_strategy');
-
   if (!el) return;
-
   var current = el.value;
-
-  el.innerHTML =
-    '<option value="">All configured strategies</option>' +
-
-    S.strategies.map(function(s) {
-
-      return '<option value="' +
-        esc(s.strategy_id) +
-        '">' +
-        esc(s.name) +
-        '</option>';
-
-    }).join('');
-
-  if (current) {
-    el.value = current;
-  }
+  el.innerHTML = '<option value="">All configured strategies</option>' +
+    S.strategies.map(function (s) { return '<option value="' + esc(s.strategy_id) + '">' + esc(s.name) + '</option>'; }).join('');
+  if (current) el.value = current;
 }
 var started = false;
 function startApp() {
