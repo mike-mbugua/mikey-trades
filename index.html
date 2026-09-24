@@ -423,7 +423,7 @@ details.cl[open] summary{margin-bottom:8px}
         <div class="pf">
           <label class="fld span2"><span>Strategy</span><select id="an_strategy"></select></label>
           <label class="fld span2"><span>Risk per trade (%)</span><input id="an_risk" type="number" step="0.1" min="0.1" value="1" inputmode="decimal"><div class="sub">Lots are sized from the account in Trade setup below</div></label>
-          <div class="fld span4"><span>Pair</span><div class="pairs" id="an_pairs"><button type="button" data-sym="XAUUSD" class="on">XAUUSD</button><button type="button" data-sym="GBPUSD">GBPUSD</button><button type="button" data-sym="USDJPY">USDJPY</button><button type="button" data-sym="EURUSD">EURUSD</button><button type="button" data-sym="DXY">DXY</button></div></div>
+          <div class="fld span4"><span>Pair</span><div class="pairs" id="an_pairs"><button type="button" data-sym="XAUUSD" class="on">XAUUSD</button><button type="button" data-sym="GBPUSD">GBPUSD</button><button type="button" data-sym="USDJPY">USDJPY</button><button type="button" data-sym="GBPJPY">GBPJPY</button><button type="button" data-sym="EURUSD">EURUSD</button><button type="button" data-sym="DXY">DXY</button></div></div>
         </div>
         <div id="an_inputs" style="margin-top:14px"></div>
         <button class="btn full" id="btnAnalyze">Analyze</button>
@@ -446,7 +446,7 @@ details.cl[open] summary{margin-bottom:8px}
           <label class="fld"><span>Account</span><select id="p_account"></select></label>
           <label class="fld"><span>Strategy</span><select id="p_strategy"></select></label>
           <label class="fld span2"><span>Setup tag</span><input id="p_setup" list="setupList" placeholder="e.g. OB retest" autocomplete="off"></label>
-          <div class="fld span4"><span>Pair</span><div class="pairs" id="p_pairs"><button type="button" data-sym="XAUUSD" class="on">XAUUSD</button><button type="button" data-sym="GBPUSD">GBPUSD</button><button type="button" data-sym="USDJPY">USDJPY</button><button type="button" data-sym="EURUSD">EURUSD</button><button type="button" data-sym="DXY">DXY</button></div></div>
+          <div class="fld span4"><span>Pair</span><div class="pairs" id="p_pairs"><button type="button" data-sym="XAUUSD" class="on">XAUUSD</button><button type="button" data-sym="GBPUSD">GBPUSD</button><button type="button" data-sym="USDJPY">USDJPY</button><button type="button" data-sym="EURUSD">EURUSD</button><button type="button" data-sym="GBPJPY">GBPJPY</button><button type="button" data-sym="DXY">DXY</button></div></div>
           <div class="fld span2"><span>Direction</span><div class="seg" id="p_dir"><button type="button" data-v="buy" class="on">Buy</button><button type="button" data-v="sell">Sell</button></div></div>
           <label class="fld span2"><span>Date &amp; time</span><input id="p_time" type="datetime-local"></label>
           <div class="fld"><span>Entry</span><input id="p_entry" type="number" step="any" inputmode="decimal"><div class="sub" id="s_entry"></div><div class="qk"><button type="button" id="qLive">Use live price</button></div></div>
@@ -482,6 +482,7 @@ details.cl[open] summary{margin-bottom:8px}
               <option value="XAUUSD">XAUUSD</option>
               <option value="GBPUSD">GBPUSD</option>
               <option value="USDJPY">USDJPY</option>
+              <option value="USDJPY">GBPJPY</option>
               <option value="EURUSD">EURUSD</option>
               <option value="DXY">DXY</option>
             </select>
@@ -748,9 +749,10 @@ var charts = {};
 var SPECS = {
   XAUUSD: {pp: 100}, EURUSD: {pp: 100000}, GBPUSD: {pp: 100000},
   USDJPY: {pp: 100000, inv: true},
+  GBPJPY: {pp: 100000, inv: true},
   DXY: {pp: 1000}   // CHECK your broker's contract spec
 };
-var SYMBOLS = ['XAUUSD', 'GBPUSD', 'USDJPY', 'EURUSD', 'DXY'];
+var SYMBOLS = ['XAUUSD', 'GBPUSD', 'USDJPY','GBPJPY','EURUSD', 'DXY'];
 function perLot(sym, price, custom) {
   var s = SPECS[sym];
   if (s) return s.inv ? s.pp / price : s.pp;
@@ -1799,13 +1801,14 @@ function bindStratRules() {
 
 /* ---------- PLAN + NEWS ---------- */
 var PLAN = {plans: [], prices: null, priceErr: '', err: '', news: null, newsAt: 0, day: 'today', imp: 'All', cur: 'ALL', dir: 'buy', timeTouched: false, busy: false, fx: null, fxAt: 0, liveAt: 0};
-var DEC = {XAUUSD: 2, EURUSD: 5, GBPUSD: 5, USDJPY: 3, DXY: 3};
+var DEC = {XAUUSD: 2, EURUSD: 5, GBPUSD: 5, USDJPY: 3, DXY: 3, GBPJPY: 3};
 var SYM_CUR = {XAUUSD: ['USD'], EURUSD: ['EUR', 'USD'], GBPUSD: ['GBP', 'USD'], USDJPY: ['USD', 'JPY'], DXY: ['USD', 'EUR', 'GBP', 'JPY', 'CAD', 'CHF']};
 var MINE = ['USD', 'EUR', 'GBP', 'JPY'];
 var INFO = {
   XAUUSD: {name: 'Gold vs US Dollar', nick: 'Gold', us: 1, u: 'pts', unit: '$1.00 move', size: '100 oz', sess: 'London → New York', drv: 'Real yields, USD strength, risk sentiment, geopolitics'},
   GBPUSD: {name: 'British Pound vs US Dollar', nick: 'Cable', us: 0.0001, u: 'pips', unit: 'pip', size: '100,000 GBP', sess: 'London, NY overlap', drv: 'BoE vs Fed policy, UK CPI and jobs data'},
   USDJPY: {name: 'US Dollar vs Japanese Yen', nick: 'USDJPY', us: 0.01, u: 'pips', unit: 'pip', size: '100,000 USD', sess: 'Tokyo and New York', drv: 'US yields, BoJ policy, risk sentiment, intervention risk'},
+  GBPJPY: {name: 'British Pound vs Japanese Yen', nick: 'GBPJPY', us: 0.01, u: 'pips', unit: 'pip', size: '100,000 USD', sess: 'Tokyo and New York', drv: 'US yields, BoJ policy, risk sentiment, intervention risk'},
   EURUSD: {name: 'Euro vs US Dollar', nick: 'Fiber', us: 0.0001, u: 'pips', unit: 'pip', size: '100,000 EUR', sess: 'London, NY overlap', drv: 'ECB vs Fed policy, Eurozone and US data'},
   DXY: {name: 'US Dollar Index (synthetic)', nick: 'Dollar Index', us: 1, u: 'pts', unit: '1.00 point', size: 'Broker CFD', sess: 'London → New York', drv: 'Fed, US yields. EUR is about 58% of the basket'}
 };
